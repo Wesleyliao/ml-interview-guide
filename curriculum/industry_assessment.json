@@ -1,0 +1,79 @@
+[
+  {
+    "title": "Banking ledger",
+    "path": "coding/industry_assessment/bank.py",
+    "prompt": "Create accounts, deposit funds and transfer money between accounts. Use integer amounts. create_account returns False for an existing ID; deposit and transfer return the new source/account balance or None for an invalid operation. Transfers must reject missing accounts, self-transfers and insufficient funds without changing balances. Assume positive amounts and increasing timestamps.",
+    "example": "Create A and B; deposit 100 into A; transfer 30 from A to B \u2192 return 70, with balances A=70 and B=30. A transfer of 80 now fails and leaves both unchanged.",
+    "extensions": [
+      "Rank top spenders by outgoing amounts, with ID tie-breaking.",
+      "Add payments with delayed cashback and status queries.",
+      "Add account merging and historical balances; define which history and scheduled events survive."
+    ]
+  },
+  {
+    "title": "Cloud storage",
+    "path": "coding/industry_assessment/cloud_storage.py",
+    "prompt": "Implement add_file(name,size), copy_file(source,target) and get_file_size(name) over an in-memory path-to-size map. add/copy return True on success and False if a destination already exists or the source is missing. get returns the integer size, or None if absent. Assume nonnegative sizes; paths are exact strings.",
+    "example": "Add /a with size 10; copy /a to /b \u2192 True; copy again \u2192 False; get /b \u2192 10.",
+    "extensions": [
+      "Find paths matching a prefix and suffix, ordered by size descending then name.",
+      "Add owners and storage quotas; define copy ownership and quota rules before coding.",
+      "Add compression/decompression, including naming collisions and capacity checks."
+    ]
+  },
+  {
+    "title": "Versioned storage",
+    "path": "coding/industry_assessment/cloud_storage_version.py",
+    "prompt": "Implement a file map supporting add, move and size lookup. For this reconstructed core, add fails if a path exists; move fails if source is absent or destination exists, otherwise moves the file atomically. Return booleans for mutations and None for a missing size. Sizes are nonnegative integers.",
+    "example": "Add /a=12; move /a to /b \u2192 True; /a is now absent and /b has size 12.",
+    "extensions": [
+      "List largest N files under a prefix with deterministic ties.",
+      "Track numbered versions; specify whether add updates existing paths once versioning is introduced.",
+      "Add prefix deletion and restoration; clarify restore collisions and version retention."
+    ]
+  },
+  {
+    "title": "Employee time tracking",
+    "path": "coding/industry_assessment/employee.py",
+    "prompt": "Implement add_worker(id,position,rate), register(id,timestamp), and get(id). Adding an existing worker returns False. Each register toggles entry/exit; return False for an unknown worker, True otherwise. get returns total time in completed sessions or None for an unknown worker; ignore an open session. Assume timestamps increase and rates are nonnegative.",
+    "example": "Register worker w at 10 and 25; get(w) \u2192 15. Register again at 30; get(w) remains 15.",
+    "extensions": [
+      "Rank workers by completed time within a position.",
+      "Schedule promotions and calculate salary over a time range; specify when new compensation starts.",
+      "Add double-pay windows and define overlap handling."
+    ]
+  },
+  {
+    "title": "In-memory database",
+    "path": "coding/industry_assessment/in_mem_db.py",
+    "prompt": "Implement set(timestamp,key,field,value), get, compare_and_set and compare_and_delete. Values are integers. set returns None; get returns None when absent. Conditional operations return True only when an existing value equals expected_value, and otherwise leave state unchanged. Assume increasing timestamps; no TTL in the core.",
+    "example": "Set user/score=5; compare_and_set expected 4 \u2192 False; expected 5, new 8 \u2192 True; get \u2192 8.",
+    "extensions": [
+      "Scan fields alphabetically, optionally filtering by prefix.",
+      "Add TTL with validity [write_time, write_time+ttl); expired fields behave as absent.",
+      "Add historical reads; specify deletion, expiration and timestamp-zero semantics."
+    ]
+  },
+  {
+    "title": "Recipe manager",
+    "path": "coding/industry_assessment/recipt_manager.py",
+    "prompt": "Implement add_recipe(id,name,ingredients), get_recipe(id) and update_recipe(id,name,ingredients). IDs and names must be unique, with names compared case-insensitively. Mutations return False on conflict or missing update target, True otherwise. get returns a copied record or None. Store the display spelling and an ingredient list.",
+    "example": "Add r1 named Soup; adding r2 named SOUP fails. Updating r1 to soup succeeds because it owns that name.",
+    "extensions": [
+      "Search or rank recipes with explicit matching and tie rules.",
+      "Add versions and restore behavior, specifying name conflicts.",
+      "Use a secondary name index and keep it consistent with updates/deletions."
+    ]
+  },
+  {
+    "title": "Task manager",
+    "path": "coding/industry_assessment/task_manager.py",
+    "prompt": "Implement add_task(name,priority), update_task(id,name,priority), get_task(id) and delete_task(id). Generate monotonically increasing IDs task_id_1, task_id_2, etc.; never reuse deleted IDs. add returns the ID; update/delete return success booleans; get returns a copied record or None. Priorities are integers.",
+    "example": "Add task_id_1; delete it; the next added task is task_id_2. Updating task_id_1 returns False.",
+    "extensions": [
+      "List/filter tasks with priority ordering and stable tie-breaking.",
+      "Add users, assignment and capacity constraints.",
+      "Add time-aware operations; agree on deadlines and historical query semantics."
+    ]
+  }
+]

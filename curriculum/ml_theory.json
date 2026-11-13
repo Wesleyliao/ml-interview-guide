@@ -1,0 +1,206 @@
+[
+  {
+    "group": "ML basics",
+    "q": "Bias versus variance?",
+    "a": "High training error suggests underfitting or an optimization/data issue; low training error with a large validation gap suggests overfitting. Compare learning curves before choosing more data, capacity or regularization.",
+    "follow": "What if both errors rise after a data refresh?"
+  },
+  {
+    "group": "ML basics",
+    "q": "How do you prevent leakage?",
+    "a": "Split before fitting scalers, imputers or feature selection. Use time splits for forecasting and group splits for repeated entities. Features must exist at prediction time; tune on validation, evaluate once on held-out test.",
+    "follow": "Why can random splitting inflate a recommender metric?"
+  },
+  {
+    "group": "ML basics",
+    "q": "L1 versus L2 regularization?",
+    "a": "Add lambda times the L1 norm or squared L2 norm to the loss. L1 can create exact zeros; L2 shrinks weights smoothly. Scale features first. Choose lambda on validation data; more regularization can underfit.",
+    "follow": "Why does the intercept often remain unpenalized?"
+  },
+  {
+    "group": "ML basics",
+    "q": "Linear versus logistic regression?",
+    "a": "Linear regression predicts a real value and commonly minimizes squared error. Logistic regression models p(y=1|x)=sigmoid(w\u00b7x+b), minimizing binary cross entropy. Both are linear in their score; logistic predictions are nonlinear probabilities.",
+    "follow": "Derive the logistic gradient X\u1d40(p\u2212y)/n."
+  },
+  {
+    "group": "ML basics",
+    "q": "Why not invert X\u1d40X?",
+    "a": "The normal equation requires full column rank, not merely enough rows. Correlated columns can make it singular or ill-conditioned. Use least squares via QR/SVD; ridge adds a regularization term but changes the objective.",
+    "follow": "Show a matrix with n>d and duplicate columns."
+  },
+  {
+    "group": "ML basics",
+    "q": "What does Naive Bayes assume?",
+    "a": "Features are conditionally independent given the class, not unconditionally independent. Sum log likelihoods plus log prior; smoothing prevents unseen categories from forcing zero likelihood. Gaussian, categorical and multinomial variants use different likelihoods.",
+    "follow": "Why can it classify well but be poorly calibrated?"
+  },
+  {
+    "group": "ML basics",
+    "q": "What does k-means optimize?",
+    "a": "Sum of squared distances to assigned centroids. Alternate nearest-center assignment and mean updates. Initialization affects the local optimum; scale features and consider multiple restarts. Retain or reseed an empty center explicitly.",
+    "follow": "Why is a mean appropriate for squared distance but not absolute distance?"
+  },
+  {
+    "group": "ML basics",
+    "q": "Bagging versus boosting?",
+    "a": "Bagging trains models on resampled data and averages them, often reducing variance. Boosting adds models sequentially to address the current loss residuals or gradients. Tree depth, learning rate and number of rounds control capacity.",
+    "follow": "When would a boosted tree beat a neural network on tabular data?"
+  },
+  {
+    "group": "ML basics",
+    "q": "Metrics for imbalanced classification?",
+    "a": "Precision measures correctness among predicted positives; recall measures coverage of actual positives. Choose the threshold using error costs or a precision/recall constraint. PR curves emphasize rare-positive performance; ROC-AUC alone can hide a poor operating point.",
+    "follow": "Can a high-AUC model have bad probability calibration?"
+  },
+  {
+    "group": "ML basics",
+    "q": "Offline versus online recommender quality?",
+    "a": "Recall@K measures candidate coverage; NDCG rewards relevant results near the top. Neither proves engagement or retention improves. Run controlled experiments with latency, negative feedback and diversity guardrails; watch exposure and selection bias.",
+    "follow": "How do you evaluate items that the old policy never showed?"
+  },
+  {
+    "group": "Deep learning",
+    "q": "What is backpropagation?",
+    "a": "Apply the chain rule through a computation graph, accumulating gradients for parameters used along multiple paths. The optimizer then updates parameters. Gradients accumulate in PyTorch, so clear them at the intended update boundary.",
+    "follow": "Explain why detach breaks a gradient path."
+  },
+  {
+    "group": "Deep learning",
+    "q": "Why do gradients vanish or explode?",
+    "a": "Repeated Jacobian products can shrink or grow gradients. Saturating activations worsen vanishing; initialization, residual connections and normalization help. Gradient clipping addresses large gradients but does not fix incorrect objectives or data.",
+    "follow": "What would you inspect when the loss becomes NaN?"
+  },
+  {
+    "group": "Deep learning",
+    "q": "BatchNorm versus LayerNorm?",
+    "a": "BatchNorm uses batch-dependent statistics during training and typically running statistics at inference. LayerNorm normalizes specified feature dimensions per example/token and does not depend on other batch members. Their normalization axes matter.",
+    "follow": "Why is LayerNorm convenient for variable-length language modeling?"
+  },
+  {
+    "group": "Deep learning",
+    "q": "Dropout, eval and no_grad?",
+    "a": "Dropout randomly removes activations during training with compensating scaling. model.eval changes behavior of modules such as dropout and BatchNorm; it does not disable autograd. no_grad disables graph recording but does not switch module mode.",
+    "follow": "What goes wrong if validation runs in train mode?"
+  },
+  {
+    "group": "Deep learning",
+    "q": "SGD, momentum and Adam?",
+    "a": "SGD follows the minibatch gradient. Momentum averages gradient directions. Adam tracks first and second moments for coordinate-wise adaptation with bias correction. Learning rate still matters; AdamW decouples weight decay from the adaptive gradient update.",
+    "follow": "Why might you use a warmup schedule?"
+  },
+  {
+    "group": "Transformers",
+    "q": "Derive attention and shapes.",
+    "a": "For X of shape B\u00d7T\u00d7E, project Q,K to B\u00d7T\u00d7d_k and V to B\u00d7T\u00d7d_v. softmax(QK\u1d40/\u221ad_k) has shape B\u00d7T\u00d7T; multiplying V yields B\u00d7T\u00d7d_v. Normalize over key positions.",
+    "follow": "Why divide by \u221ad_k?"
+  },
+  {
+    "group": "Transformers",
+    "q": "Causal versus padding masks?",
+    "a": "Causal masks prevent attending to future tokens; padding masks exclude padding keys. Apply masks to logits before softmax, typically with negative infinity. Define behavior for fully masked rows to avoid NaNs.",
+    "follow": "Why does multiplying logits by zero not mask them?"
+  },
+  {
+    "group": "Transformers",
+    "q": "What makes a Transformer block?",
+    "a": "Multi-head attention combines learned attention subspaces; a position-wise feed-forward network transforms features. Residual connections and normalization stabilize depth. Position information is required because unpositioned self-attention is permutation equivariant.",
+    "follow": "Contrast encoder self-attention, decoder masked attention and cross-attention."
+  },
+  {
+    "group": "Transformers",
+    "q": "What does KV caching save?",
+    "a": "During autoregressive decoding, reuse old keys and values instead of recomputing them. Each new query still attends to the available context. Cache memory per token is 2\u00d7layers\u00d7KV_heads\u00d7head_dim\u00d7bytes, per sequence; query heads may differ under GQA.",
+    "follow": "Why cache K and V but usually not old Q?"
+  },
+  {
+    "group": "Transformers",
+    "q": "Attention cost and FlashAttention?",
+    "a": "Dense attention interactions scale quadratically with sequence length. FlashAttention uses tiled exact attention to reduce memory traffic and avoid materializing the full attention matrix; it does not make dense attention mathematically linear-time.",
+    "follow": "How do prefill and one-token decode differ?"
+  },
+  {
+    "group": "Transformers",
+    "q": "Fine-tuning, LoRA or RAG?",
+    "a": "Fine-tuning changes model behavior/weights; LoRA trains low-rank updates to selected weights. RAG supplies retrieved context at inference and supports updating knowledge separately. They can be combined; assess answer quality and retrieval quality separately.",
+    "follow": "When is prompt engineering enough?"
+  },
+  {
+    "group": "ML basics",
+    "q": "When are linear regression assumptions needed?",
+    "a": "Least squares does not require normally distributed input features. Full column rank gives a unique coefficient solution; zero conditional mean errors support unbiasedness. Homoscedasticity and uncorrelated errors underpin classical variance formulas; normal errors support exact small-sample inference. Prediction can still be useful when inferential assumptions fail.",
+    "follow": "What changes with heteroscedastic errors?"
+  },
+  {
+    "group": "ML basics",
+    "q": "How do you handle missing and categorical features?",
+    "a": "Fit imputers and encoders on training data only. Consider missingness indicators when absence is informative. One-hot encoding suits low cardinality; hashing bounds memory but creates collisions; embeddings learn compact representations. Target encoding requires out-of-fold construction to avoid leakage.",
+    "follow": "When would median imputation hide an important signal?"
+  },
+  {
+    "group": "ML basics",
+    "q": "PCA, LDA and feature selection?",
+    "a": "PCA finds orthogonal directions of maximum variance without labels; discriminant LDA uses labels to separate classes. Neither guarantees better downstream predictions. Filter selection scores features independently of a fitted predictor; wrappers search feature subsets using validation; embedded selection occurs during training, as with L1. L2 usually shrinks rather than selects exact zeros.",
+    "follow": "Why fit dimensionality reduction inside each validation fold?"
+  },
+  {
+    "group": "ML basics",
+    "q": "What if labels are scarce?",
+    "a": "Transfer learning reuses representations; weak supervision combines noisy labeling sources; semi-supervised methods exploit unlabeled examples. Pseudo-labels can reinforce mistakes, so use confidence controls and a genuinely labeled held-out set. Augmentation must preserve the target semantics.",
+    "follow": "How do you assess correlated weak labeling sources?"
+  },
+  {
+    "group": "ML basics",
+    "q": "How do you calibrate a classifier?",
+    "a": "Calibration asks whether predictions near 0.8 are correct about 80% of the time. Inspect reliability plots, log loss or Brier score, and subgroup behavior. Fit Platt scaling or isotonic regression on disjoint calibration data. Resampling or class weighting can change probabilities; validate calibration under the serving distribution.",
+    "follow": "Can calibration improve while AUC stays unchanged?"
+  },
+  {
+    "group": "ML basics",
+    "q": "Data drift versus concept drift?",
+    "a": "Data drift changes the input distribution P(X); concept drift changes P(y|X). Covariate drift alone need not reduce quality. Monitor input health and delayed outcome metrics, check logging and seasonality, then determine whether retraining addresses the actual cause.",
+    "follow": "What can you detect before labels arrive?"
+  },
+  {
+    "group": "ML basics",
+    "q": "ARMA, ARIMA and stationarity?",
+    "a": "ARMA typically models a stationary series; ARIMA incorporates differencing to address nonstationarity. The ADF test has a unit-root null: a small p-value is evidence against that null, not a generic proof of every kind of stationarity. Evaluate with time-ordered backtests and account for seasonality.",
+    "follow": "Why can ordinary shuffled cross-validation mislead?"
+  },
+  {
+    "group": "ML basics",
+    "q": "Does k-means converge to the global optimum?",
+    "a": "Standard Lloyd updates do not increase the squared-Euclidean objective. With consistent tie and empty-cluster handling they reach a fixed assignment/local solution, not necessarily the global optimum. The joint problem is nonconvex; initialization and multiple restarts matter. Absolute-distance clustering generally needs medians, not mean updates.",
+    "follow": "What does k-means++ improve?"
+  },
+  {
+    "group": "ML basics",
+    "q": "What happens to logistic regression on separable data?",
+    "a": "Without regularization, perfectly separable classes can drive coefficients toward infinity: the likelihood supremum need not occur at finite weights. Regularization gives a controlled solution. This does not imply kNN is universally preferable.",
+    "follow": "What does stronger L2 do to the predicted probabilities?"
+  },
+  {
+    "group": "ML basics",
+    "q": "MRR, MAP, NDCG and MMR?",
+    "a": "MRR averages the reciprocal rank of the first relevant result. MAP considers precision at relevant ranks across the result list. NDCG discounts graded relevance by position and normalizes by the ideal ranking. MMR is a relevance\u2013redundancy reranking strategy, not mean reciprocal rank.",
+    "follow": "Which metric fits a query with several required evidence documents?"
+  },
+  {
+    "group": "ML basics",
+    "q": "Micro versus macro metrics for multilabel tasks?",
+    "a": "Micro aggregation pools label decisions before computing a metric; macro averages per-label scores, giving rare labels equal weight. Subset accuracy requires the entire label set to match. Independent sigmoid outputs with BCE are a common baseline; label dependencies can motivate richer models.",
+    "follow": "When would a good micro score hide a failed rare label?"
+  },
+  {
+    "group": "ML basics",
+    "q": "How do you test an ML pipeline beyond accuracy?",
+    "a": "Test schemas, null rates, label quality, feature transformations, point-in-time joins and training/serving parity. Use ablations to test feature value, perturbations for robustness and justified invariances for expected behavior. Trace examples end to end and compare to a simple baseline.",
+    "follow": "What would you inspect first after a sudden quality regression?"
+  },
+  {
+    "group": "ML basics",
+    "q": "Shadow, canary and blue-green deployment?",
+    "a": "Shadow traffic exercises a new model without changing user-facing decisions. Canary exposes a limited cohort and ramps after checks. Blue-green retains two environments for switching and rollback; it is not inherently an A/B experiment. Randomized experiments need separate assignment and measurement design.",
+    "follow": "How do you ensure a shadow model cannot cause tool side effects?"
+  }
+]
