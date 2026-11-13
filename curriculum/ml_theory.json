@@ -1,206 +1,794 @@
 [
   {
-    "group": "ML basics",
-    "q": "Bias versus variance?",
-    "a": "High training error suggests underfitting or an optimization/data issue; low training error with a large validation gap suggests overfitting. Compare learning curves before choosing more data, capacity or regularization.",
-    "follow": "What if both errors rise after a data refresh?"
+    "group": "ML foundations",
+    "subgroup": "Learning setups",
+    "q": "Supervised, unsupervised, self-supervised and reinforcement learning?",
+    "a": "Supervised learning uses input–target examples. Unsupervised learning looks for structure without provided task labels. Self-supervised learning builds targets from data itself, such as the next token or another view of an image. Reinforcement learning optimizes expected return from interaction with an environment.",
+    "nuance": "Self-supervision is a way to obtain a training signal, not a model architecture. An autoregressive language model can be pretrained with self-supervision, instruction-tuned with supervision, then optimized using preference feedback."
   },
   {
-    "group": "ML basics",
-    "q": "How do you prevent leakage?",
-    "a": "Split before fitting scalers, imputers or feature selection. Use time splits for forecasting and group splits for repeated entities. Features must exist at prediction time; tune on validation, evaluate once on held-out test.",
-    "follow": "Why can random splitting inflate a recommender metric?"
+    "group": "ML foundations",
+    "subgroup": "Learning setups",
+    "q": "Discriminative versus generative models?",
+    "a": "A discriminative classifier models \\(P(y\\mid x)\\) or a decision boundary. A generative classifier models \\(P(x\\mid y)\\) and P(y), then uses Bayes’ rule; Naive Bayes is an example. A generative language model instead models a distribution over token sequences.",
+    "nuance": "“Generative” is broader than chat or image generation. Logistic regression and Naive Bayes can solve the same classification task with different modeling assumptions.",
+    "formula": "P(y \\mid x) = \\frac{P(x \\mid y)\\,P(y)}{P(x)}"
   },
   {
-    "group": "ML basics",
+    "group": "ML foundations",
     "q": "L1 versus L2 regularization?",
     "a": "Add lambda times the L1 norm or squared L2 norm to the loss. L1 can create exact zeros; L2 shrinks weights smoothly. Scale features first. Choose lambda on validation data; more regularization can underfit.",
-    "follow": "Why does the intercept often remain unpenalized?"
+    "follow": "Why does the intercept often remain unpenalized?",
+    "subgroup": "Linear models & probability",
+    "formula": "\\mathcal{L}_{L_1}(w) = \\mathcal{L}_{\\mathrm{data}}(w) + \\lambda \\sum_j |w_j|\n\\mathcal{L}_{L_2}(w) = \\mathcal{L}_{\\mathrm{data}}(w) + \\lambda \\sum_j w_j^2",
+    "notation": "\\(\\lambda\\ge 0\\) controls penalty strength; whether the loss is a sum or mean changes its effective scale.",
+    "nuance": "With correlated features, L1 may select one arbitrarily; L2 tends to distribute weight. Elastic net combines both penalties. L2 regularization and decoupled weight decay are not equivalent for adaptive optimizers."
   },
   {
-    "group": "ML basics",
+    "group": "ML foundations",
     "q": "Linear versus logistic regression?",
-    "a": "Linear regression predicts a real value and commonly minimizes squared error. Logistic regression models p(y=1|x)=sigmoid(w\u00b7x+b), minimizing binary cross entropy. Both are linear in their score; logistic predictions are nonlinear probabilities.",
-    "follow": "Derive the logistic gradient X\u1d40(p\u2212y)/n."
+    "a": "Linear regression predicts a real value and commonly minimizes squared error. Logistic regression models \\(P(y=1\\mid x)=\\sigma(w^\\top x+b)\\), minimizing binary cross entropy. Both are linear in their score; logistic predictions are nonlinear probabilities.",
+    "follow": "Derive the logistic gradient \\(X^\\top(p-y)/n\\).",
+    "subgroup": "Linear models & probability",
+    "formula": "\\hat y = x^\\top w + b\np = \\sigma(x^\\top w+b) = \\frac{1}{1+\\exp(-x^\\top w-b)}\n\\mathcal{L}_{\\mathrm{BCE}} = -\\frac{1}{n}\\sum_{i=1}^n \\left[y_i\\log p_i + (1-y_i)\\log(1-p_i)\\right]",
+    "notation": "Rows of X are examples; p and y are length-n vectors. For mean BCE, \\(\\nabla_w\\mathcal{L}=X^\\top(p-y)/n\\).",
+    "nuance": "Logistic regression learns a linear decision boundary in its input features. Polynomial or other feature transforms can make that boundary nonlinear in the original input space."
   },
   {
-    "group": "ML basics",
-    "q": "Why not invert X\u1d40X?",
+    "group": "ML foundations",
+    "q": "Why not invert XᵀX?",
     "a": "The normal equation requires full column rank, not merely enough rows. Correlated columns can make it singular or ill-conditioned. Use least squares via QR/SVD; ridge adds a regularization term but changes the objective.",
-    "follow": "Show a matrix with n>d and duplicate columns."
+    "follow": "Show a matrix with n>d and duplicate columns.",
+    "subgroup": "Linear models & probability",
+    "formula": "\\hat w_{\\mathrm{OLS}} = (X^\\top X)^{-1}X^\\top y\n\\hat w_{\\mathrm{ridge}} = (X^\\top X+\\lambda I)^{-1}X^\\top y",
+    "notation": "The displayed ridge form penalizes all columns. If X includes an intercept, normally exclude that coordinate from the penalty.",
+    "nuance": "These are algebraic solutions, not instructions to explicitly compute an inverse. QR/SVD avoids squaring the condition number through \\(X^\\top X\\); use a solver for ridge."
   },
   {
-    "group": "ML basics",
+    "group": "ML foundations",
     "q": "What does Naive Bayes assume?",
     "a": "Features are conditionally independent given the class, not unconditionally independent. Sum log likelihoods plus log prior; smoothing prevents unseen categories from forcing zero likelihood. Gaussian, categorical and multinomial variants use different likelihoods.",
-    "follow": "Why can it classify well but be poorly calibrated?"
+    "follow": "Why can it classify well but be poorly calibrated?",
+    "subgroup": "Linear models & probability",
+    "formula": "\\log P(y\\mid x) = C(x) + \\log P(y) + \\sum_j \\log P(x_j\\mid y)",
+    "nuance": "Repeated correlated evidence gets counted more than once, which can make probabilities overconfident even when the winning class is correct.",
+    "notation": "\\(C(x)=-\\log P(x)\\) does not depend on the class, so it can be omitted when choosing the most likely class."
   },
   {
-    "group": "ML basics",
+    "group": "ML foundations",
+    "q": "When are linear regression assumptions needed?",
+    "a": "Least squares does not require normally distributed input features. Full column rank gives a unique coefficient solution; zero conditional mean errors support unbiasedness. Homoscedasticity and uncorrelated errors underpin classical variance formulas; normal errors support exact small-sample inference. Prediction can still be useful when inferential assumptions fail.",
+    "follow": "What changes with heteroscedastic errors?",
+    "subgroup": "Linear models & probability"
+  },
+  {
+    "group": "ML foundations",
+    "q": "What happens to logistic regression on separable data?",
+    "a": "Without regularization, perfectly separable classes can drive coefficients toward infinity: the likelihood supremum need not occur at finite weights. Regularization gives a controlled solution. This does not imply kNN is universally preferable.",
+    "follow": "What does stronger L2 do to the predicted probabilities?",
+    "subgroup": "Linear models & probability"
+  },
+  {
+    "group": "ML foundations",
+    "subgroup": "Linear models & probability",
+    "q": "Maximum likelihood versus MAP estimation?",
+    "a": "Maximum likelihood chooses parameters that best explain observed data. Maximum a posteriori estimation also includes a prior over parameters. With Gaussian noise, linear-regression maximum likelihood minimizes squared error; a Gaussian weight prior yields an L2 penalty, and a Laplace prior yields L1.",
+    "formula": "\\hat\\theta_{\\mathrm{MLE}} = \\operatorname*{arg\\,max}_{\\theta}\\log P(D\\mid\\theta)\n\\hat\\theta_{\\mathrm{MAP}} = \\operatorname*{arg\\,max}_{\\theta}\\left[\\log P(D\\mid\\theta)+\\log P(\\theta)\\right]",
+    "nuance": "MAP returns a point estimate, not a full posterior. The exact regularization coefficient depends on the prior scale, likelihood noise and sum-versus-mean loss convention."
+  },
+  {
+    "group": "ML foundations",
     "q": "What does k-means optimize?",
     "a": "Sum of squared distances to assigned centroids. Alternate nearest-center assignment and mean updates. Initialization affects the local optimum; scale features and consider multiple restarts. Retain or reseed an empty center explicitly.",
-    "follow": "Why is a mean appropriate for squared distance but not absolute distance?"
+    "follow": "Why is a mean appropriate for squared distance but not absolute distance?",
+    "subgroup": "Trees, clustering & features",
+    "formula": "J = \\sum_{i=1}^n \\left\\lVert x_i-\\mu_{c_i}\\right\\rVert_2^2",
+    "notation": "\\(c_i\\) is the cluster assigned to example i; \\(\\mu_{c_i}\\) is its centroid.",
+    "nuance": "It favors roughly spherical groups under the chosen distance. Raw feature scale can dominate; elongated clusters, unequal densities and outliers can make this a poor model."
   },
   {
-    "group": "ML basics",
+    "group": "ML foundations",
     "q": "Bagging versus boosting?",
     "a": "Bagging trains models on resampled data and averages them, often reducing variance. Boosting adds models sequentially to address the current loss residuals or gradients. Tree depth, learning rate and number of rounds control capacity.",
-    "follow": "When would a boosted tree beat a neural network on tabular data?"
+    "follow": "When would a boosted tree beat a neural network on tabular data?",
+    "subgroup": "Trees, clustering & features",
+    "comparison": {
+      "headers": [
+        "Method",
+        "How it learns",
+        "Main tradeoff"
+      ],
+      "rows": [
+        [
+          "Random forest / bagging",
+          "Fit resampled trees independently; random forests also subsample features.",
+          "Averaging reduces variance when errors are not perfectly correlated; training parallelizes."
+        ],
+        [
+          "Gradient boosting",
+          "Add a weak learner fitted to negative loss gradients.",
+          "Strong tabular baseline; sequential fitting and depth/rate/rounds need tuning."
+        ]
+      ]
+    }
   },
   {
-    "group": "ML basics",
+    "group": "ML foundations",
+    "q": "How do you handle missing and categorical features?",
+    "a": "Fit imputers and encoders on training data only. Consider missingness indicators when absence is informative. One-hot encoding suits low cardinality; hashing bounds memory but creates collisions; embeddings learn compact representations. Target encoding requires out-of-fold construction to avoid leakage.",
+    "follow": "When would median imputation hide an important signal?",
+    "subgroup": "Trees, clustering & features"
+  },
+  {
+    "group": "ML foundations",
+    "q": "PCA, LDA and feature selection?",
+    "a": "PCA finds orthogonal directions of maximum variance without labels; discriminant LDA uses labels to separate classes. Neither guarantees better downstream predictions. Filter selection scores features independently of a fitted predictor; wrappers search feature subsets using validation; embedded selection occurs during training, as with L1. L2 usually shrinks rather than selects exact zeros.",
+    "follow": "Why fit dimensionality reduction inside each validation fold?",
+    "subgroup": "Trees, clustering & features",
+    "nuance": "Center data before PCA; standardize if differences in units should not determine importance. High variance need not mean useful signal. Here LDA means linear discriminant analysis, not latent Dirichlet allocation."
+  },
+  {
+    "group": "ML foundations",
+    "q": "Does k-means converge to the global optimum?",
+    "a": "Standard Lloyd updates do not increase the squared-Euclidean objective. With consistent tie and empty-cluster handling they reach a fixed assignment/local solution, not necessarily the global optimum. The joint problem is nonconvex; initialization and multiple restarts matter. Absolute-distance clustering generally needs medians, not mean updates.",
+    "follow": "What does k-means++ improve?",
+    "subgroup": "Trees, clustering & features"
+  },
+  {
+    "group": "ML foundations",
+    "subgroup": "Trees, clustering & features",
+    "q": "Decision tree versus linear model versus neural network?",
+    "a": "Start with the data and constraints. Linear models are cheap, interpretable baselines when additive effects suffice. Trees capture nonlinear feature interactions without standardizing every feature. Neural networks learn representations and work well with large unstructured datasets.",
+    "comparison": {
+      "headers": [
+        "Model",
+        "Strength",
+        "Caveat"
+      ],
+      "rows": [
+        [
+          "Linear / logistic",
+          "Fast, transparent coefficients after accounting for scaling.",
+          "Needs engineered interactions for nonlinear boundaries."
+        ],
+        [
+          "Boosted trees",
+          "Strong on heterogeneous tabular features.",
+          "Piecewise predictions extrapolate poorly; preprocessing and leakage still matter."
+        ],
+        [
+          "Neural network",
+          "Shared representations for text, images and multimodal input.",
+          "More choices in architecture, data and optimization; not automatically better on small tables."
+        ]
+      ]
+    }
+  },
+  {
+    "group": "Evaluation & generalization",
+    "q": "Bias versus variance?",
+    "a": "High training error suggests underfitting or an optimization/data issue; low training error with a large validation gap suggests overfitting. Compare learning curves before choosing more data, capacity or regularization.",
+    "follow": "What if both errors rise after a data refresh?",
+    "subgroup": "Generalization & validation",
+    "nuance": "Bias–variance is a decomposition of expected squared prediction error across possible training sets, not a diagnosis you can read directly from one loss curve. An irreducible noise term remains even with a perfect model.",
+    "formula": "\\mathbb{E}\\!\\left[(Y-\\hat f(x))^2\\mid x\\right] = \\operatorname{Bias}[\\hat f(x)]^2 + \\operatorname{Var}[\\hat f(x)] + \\sigma^2(x)",
+    "notation": "At a fixed input \\(x\\), expectation averages over training sets and a fresh outcome. \\(\\sigma^2(x)=\\operatorname{Var}(Y\\mid x)\\) is irreducible noise."
+  },
+  {
+    "group": "Evaluation & generalization",
+    "q": "How do you prevent leakage?",
+    "a": "Split before fitting scalers, imputers or feature selection. Use time splits for forecasting and group splits for repeated entities. Features must exist at prediction time; tune on validation, evaluate once on held-out test.",
+    "follow": "Why can random splitting inflate a recommender metric?",
+    "subgroup": "Generalization & validation",
+    "nuance": "A random split can put the same user, near-duplicate document or future interaction on both sides. Choose the split that matches the actual deployment question; an unseen-user split tests something different from predicting future activity for existing users."
+  },
+  {
+    "group": "Evaluation & generalization",
+    "subgroup": "Generalization & validation",
+    "q": "Training, validation, test and cross-validation?",
+    "a": "Fit parameters on training data. Select hyperparameters and thresholds on validation data. Use the test set for a final estimate after those choices. Cross-validation repeats train/validation splits to reduce dependence on a single split; transformations must be fitted inside each fold.",
+    "nuance": "Repeatedly checking the test set turns it into validation data. For small datasets and extensive tuning, nested cross-validation separates selection from evaluation. Use grouped or chronological folds when observations are dependent."
+  },
+  {
+    "group": "Evaluation & generalization",
     "q": "Metrics for imbalanced classification?",
     "a": "Precision measures correctness among predicted positives; recall measures coverage of actual positives. Choose the threshold using error costs or a precision/recall constraint. PR curves emphasize rare-positive performance; ROC-AUC alone can hide a poor operating point.",
-    "follow": "Can a high-AUC model have bad probability calibration?"
+    "follow": "Can a high-AUC model have bad probability calibration?",
+    "subgroup": "Metrics, thresholds & ranking",
+    "formula": "\\mathrm{Precision} = \\frac{\\mathrm{TP}}{\\mathrm{TP}+\\mathrm{FP}}\n\\mathrm{Recall} = \\frac{\\mathrm{TP}}{\\mathrm{TP}+\\mathrm{FN}}\nF_1 = \\frac{2\\,\\mathrm{Precision}\\,\\mathrm{Recall}}{\\mathrm{Precision}+\\mathrm{Recall}}",
+    "nuance": "F1 ignores true negatives and assumes a particular balance between precision and recall. PR performance depends on prevalence: compare on the same population. Define how zero denominators are handled."
   },
   {
-    "group": "ML basics",
+    "group": "Evaluation & generalization",
     "q": "Offline versus online recommender quality?",
     "a": "Recall@K measures candidate coverage; NDCG rewards relevant results near the top. Neither proves engagement or retention improves. Run controlled experiments with latency, negative feedback and diversity guardrails; watch exposure and selection bias.",
-    "follow": "How do you evaluate items that the old policy never showed?"
+    "follow": "How do you evaluate items that the old policy never showed?",
+    "subgroup": "Metrics, thresholds & ranking"
+  },
+  {
+    "group": "Evaluation & generalization",
+    "q": "How do you calibrate a classifier?",
+    "a": "Calibration asks whether predictions near 0.8 are correct about 80% of the time. Inspect reliability plots, log loss or Brier score, and subgroup behavior. Fit Platt scaling or isotonic regression on disjoint calibration data. Resampling or class weighting can change probabilities; validate calibration under the serving distribution.",
+    "follow": "Can calibration improve while AUC stays unchanged?",
+    "subgroup": "Metrics, thresholds & ranking",
+    "formula": "\\mathrm{Brier} = \\frac{1}{n}\\sum_{i=1}^n (p_i-y_i)^2",
+    "nuance": "Ranking and calibration are different: strictly increasing score transforms preserve AUC but can change calibration. Reliability diagrams depend on binning; log loss strongly punishes confidently wrong predictions."
+  },
+  {
+    "group": "Evaluation & generalization",
+    "q": "MRR, MAP, NDCG and MMR?",
+    "a": "MRR averages the reciprocal rank of the first relevant result. MAP considers precision at relevant ranks across the result list. NDCG discounts graded relevance by position and normalizes by the ideal ranking. MMR is a relevance–redundancy reranking strategy, not mean reciprocal rank.",
+    "follow": "Which metric fits a query with several required evidence documents?",
+    "subgroup": "Metrics, thresholds & ranking",
+    "formula": "\\mathrm{DCG}@K = \\sum_{r=1}^K \\frac{2^{\\mathrm{rel}(r)}-1}{\\log_2(r+1)}\n\\mathrm{NDCG}@K = \\frac{\\mathrm{DCG}@K}{\\mathrm{IDCG}@K}",
+    "notation": "\\(\\mathrm{rel}(r)\\) is relevance at rank \\(r\\); \\(\\mathrm{IDCG}\\) is DCG under the ideal ordering. State the gain convention and how queries with no relevant results are handled.",
+    "nuance": "MRR emphasizes the first useful result; recall@K emphasizes finding all required evidence; NDCG handles graded relevance and ordering. A reranker cannot recover a relevant document missing from its candidate set."
+  },
+  {
+    "group": "Evaluation & generalization",
+    "q": "Micro versus macro metrics for multilabel tasks?",
+    "a": "Micro aggregation pools label decisions before computing a metric; macro averages per-label scores, giving rare labels equal weight. Subset accuracy requires the entire label set to match. Independent sigmoid outputs with BCE are a common baseline; label dependencies can motivate richer models.",
+    "follow": "When would a good micro score hide a failed rare label?",
+    "subgroup": "Metrics, thresholds & ranking"
+  },
+  {
+    "group": "Evaluation & generalization",
+    "subgroup": "Metrics, thresholds & ranking",
+    "q": "ROC-AUC versus PR-AUC versus log loss?",
+    "a": "ROC-AUC summarizes ranking across true-positive/false-positive operating points. PR curves emphasize the quality and coverage of positive predictions. Log loss scores probabilities, penalizing confidently wrong answers. None alone tells you which threshold meets a business constraint.",
+    "comparison": {
+      "headers": [
+        "Measure",
+        "What it captures",
+        "Watch out"
+      ],
+      "rows": [
+        [
+          "ROC-AUC",
+          "Probability a positive outranks a negative, with tie convention.",
+          "Many true negatives can coexist with too many false alerts."
+        ],
+        [
+          "PR-AUC / average precision",
+          "Precision–recall tradeoff; AP uses recall-weighted precision increments.",
+          "Depends on prevalence; trapezoidal PR-AUC and AP are not identical."
+        ],
+        [
+          "Log loss",
+          "Quality of predicted probabilities.",
+          "Sensitive to confidently wrong labels and label noise."
+        ]
+      ]
+    }
+  },
+  {
+    "group": "Evaluation & generalization",
+    "subgroup": "Metrics, thresholds & ranking",
+    "q": "Statistical significance versus practical significance?",
+    "a": "A tiny effect can be statistically detectable with enough data but not worth deployment. Report an effect size and uncertainty interval, choose the unit of randomization, and define the primary metric before testing.",
+    "nuance": "Repeated peeking and testing many metrics inflate false positives without an appropriate design. Bootstrap users or another independent unit rather than correlated rows; paired evaluation helps compare models on the same examples."
+  },
+  {
+    "group": "Evaluation & generalization",
+    "q": "Data drift versus concept drift?",
+    "a": "Data drift changes the input distribution P(X); concept drift changes P(y|X). Covariate drift alone need not reduce quality. Monitor input health and delayed outcome metrics, check logging and seasonality, then determine whether retraining addresses the actual cause.",
+    "follow": "What can you detect before labels arrive?",
+    "subgroup": "Data shifts & production checks",
+    "nuance": "Label shift changes P(y) while P(X | y) stays fixed. These are assumptions, not exhaustive labels for real incidents; multiple distributions can change together."
+  },
+  {
+    "group": "Evaluation & generalization",
+    "q": "ARMA, ARIMA and stationarity?",
+    "a": "ARMA typically models a stationary series; ARIMA incorporates differencing to address nonstationarity. The ADF test has a unit-root null: a small p-value is evidence against that null, not a generic proof of every kind of stationarity. Evaluate with time-ordered backtests and account for seasonality.",
+    "follow": "Why can ordinary shuffled cross-validation mislead?",
+    "subgroup": "Data shifts & production checks"
+  },
+  {
+    "group": "Evaluation & generalization",
+    "q": "How do you test an ML pipeline beyond accuracy?",
+    "a": "Test schemas, null rates, label quality, feature transformations, point-in-time joins and training/serving parity. Use ablations to test feature value, perturbations for robustness and justified invariances for expected behavior. Trace examples end to end and compare to a simple baseline.",
+    "follow": "What would you inspect first after a sudden quality regression?",
+    "subgroup": "Data shifts & production checks"
+  },
+  {
+    "group": "Evaluation & generalization",
+    "q": "Shadow, canary and blue-green deployment?",
+    "a": "Shadow traffic exercises a new model without changing user-facing decisions. Canary exposes a limited cohort and ramps after checks. Blue-green retains two environments for switching and rollback; it is not inherently an A/B experiment. Randomized experiments need separate assignment and measurement design.",
+    "follow": "How do you ensure a shadow model cannot cause tool side effects?",
+    "subgroup": "Data shifts & production checks"
   },
   {
     "group": "Deep learning",
     "q": "What is backpropagation?",
     "a": "Apply the chain rule through a computation graph, accumulating gradients for parameters used along multiple paths. The optimizer then updates parameters. Gradients accumulate in PyTorch, so clear them at the intended update boundary.",
-    "follow": "Explain why detach breaks a gradient path."
+    "follow": "Explain why detach breaks a gradient path.",
+    "subgroup": "Optimization & numerical stability",
+    "formula": "w \\leftarrow w - \\eta\\,\\nabla_w\\mathcal{L}",
+    "notation": "η is the learning rate. Backprop computes \\(\\nabla_w\\mathcal{L}\\); the optimizer decides how to use it.",
+    "nuance": "Accumulate correctly scaled microbatch losses to emulate a larger batch, then update once. Batch-dependent layers and stochastic effects can still make the result differ from a single large-batch pass."
   },
   {
     "group": "Deep learning",
     "q": "Why do gradients vanish or explode?",
     "a": "Repeated Jacobian products can shrink or grow gradients. Saturating activations worsen vanishing; initialization, residual connections and normalization help. Gradient clipping addresses large gradients but does not fix incorrect objectives or data.",
-    "follow": "What would you inspect when the loss becomes NaN?"
-  },
-  {
-    "group": "Deep learning",
-    "q": "BatchNorm versus LayerNorm?",
-    "a": "BatchNorm uses batch-dependent statistics during training and typically running statistics at inference. LayerNorm normalizes specified feature dimensions per example/token and does not depend on other batch members. Their normalization axes matter.",
-    "follow": "Why is LayerNorm convenient for variable-length language modeling?"
-  },
-  {
-    "group": "Deep learning",
-    "q": "Dropout, eval and no_grad?",
-    "a": "Dropout randomly removes activations during training with compensating scaling. model.eval changes behavior of modules such as dropout and BatchNorm; it does not disable autograd. no_grad disables graph recording but does not switch module mode.",
-    "follow": "What goes wrong if validation runs in train mode?"
+    "follow": "What would you inspect when the loss becomes NaN?",
+    "subgroup": "Optimization & numerical stability",
+    "nuance": "For NaNs, inspect the first nonfinite activation/gradient, learning rate, division/log inputs, masks and low-precision overflow. Clipping can contain an explosion but cannot repair an all-masked softmax."
   },
   {
     "group": "Deep learning",
     "q": "SGD, momentum and Adam?",
     "a": "SGD follows the minibatch gradient. Momentum averages gradient directions. Adam tracks first and second moments for coordinate-wise adaptation with bias correction. Learning rate still matters; AdamW decouples weight decay from the adaptive gradient update.",
-    "follow": "Why might you use a warmup schedule?"
+    "follow": "Why might you use a warmup schedule?",
+    "subgroup": "Optimization & numerical stability",
+    "nuance": "Warmup limits disruptive early updates before optimizer statistics settle. A larger batch reduces gradient noise but changes the update count per epoch; tune schedules by steps/tokens, not just epochs."
   },
   {
-    "group": "Transformers",
-    "q": "Derive attention and shapes.",
-    "a": "For X of shape B\u00d7T\u00d7E, project Q,K to B\u00d7T\u00d7d_k and V to B\u00d7T\u00d7d_v. softmax(QK\u1d40/\u221ad_k) has shape B\u00d7T\u00d7T; multiplying V yields B\u00d7T\u00d7d_v. Normalize over key positions.",
-    "follow": "Why divide by \u221ad_k?"
+    "group": "Deep learning",
+    "subgroup": "Optimization & numerical stability",
+    "q": "MSE, MAE and cross-entropy: how do you choose?",
+    "a": "Squared error targets the conditional mean and strongly penalizes large residuals. Absolute error targets a conditional median and is less sensitive to extreme residuals. Cross-entropy is the negative log likelihood for categorical outcomes; use binary cross-entropy for independent binary labels.",
+    "formula": "\\mathrm{MSE} = \\frac{1}{n}\\sum_{i=1}^n (\\hat y_i-y_i)^2\n\\mathrm{MAE} = \\frac{1}{n}\\sum_{i=1}^n |\\hat y_i-y_i|\n\\mathcal{L}_{\\mathrm{CE}} = -\\sum_c y_c\\log p_c",
+    "nuance": "Use logits-based loss APIs for stability. A multiclass softmax forces classes to compete; independent sigmoids allow several labels at once. Huber loss provides a smooth quadratic-to-linear regression compromise."
   },
   {
-    "group": "Transformers",
-    "q": "Causal versus padding masks?",
-    "a": "Causal masks prevent attending to future tokens; padding masks exclude padding keys. Apply masks to logits before softmax, typically with negative infinity. Define behavior for fully masked rows to avoid NaNs.",
-    "follow": "Why does multiplying logits by zero not mask them?"
+    "group": "Deep learning",
+    "subgroup": "Optimization & numerical stability",
+    "q": "Why subtract the maximum before softmax?",
+    "a": "Exponentiating large logits can overflow. Subtracting a common constant preserves softmax probabilities; choosing the largest logit makes every exponent at most one. Compute log probabilities using log-sum-exp rather than taking log of an underflowed probability.",
+    "formula": "\\operatorname{softmax}(z)_i = \\frac{\\exp(z_i-m)}{\\sum_j\\exp(z_j-m)},\\qquad m=\\max_j z_j",
+    "nuance": "A row containing only −∞ still needs special handling: subtracting −∞ from −∞ is undefined. Adding ε after softmax does not repair the cause."
   },
   {
-    "group": "Transformers",
-    "q": "What makes a Transformer block?",
-    "a": "Multi-head attention combines learned attention subspaces; a position-wise feed-forward network transforms features. Residual connections and normalization stabilize depth. Position information is required because unpositioned self-attention is permutation equivariant.",
-    "follow": "Contrast encoder self-attention, decoder masked attention and cross-attention."
+    "group": "Deep learning",
+    "q": "BatchNorm versus LayerNorm?",
+    "a": "BatchNorm uses batch-dependent statistics during training and typically running statistics at inference. LayerNorm normalizes specified feature dimensions per example/token and does not depend on other batch members. Their normalization axes matter.",
+    "follow": "Why is LayerNorm convenient for variable-length language modeling?",
+    "subgroup": "Architecture & regularization",
+    "comparison": {
+      "headers": [
+        "Normalization",
+        "Statistics",
+        "Consequence"
+      ],
+      "rows": [
+        [
+          "BatchNorm",
+          "Per channel, over batch and often spatial axes.",
+          "Typically uses running statistics at inference; small or shifted batches can be problematic."
+        ],
+        [
+          "LayerNorm",
+          "Across hidden features of each example/token.",
+          "Same computation in train/eval; independent of other examples."
+        ],
+        [
+          "RMSNorm",
+          "Root mean square across hidden features; does not subtract the mean.",
+          "Rescales magnitudes with fewer operations; not identical to LayerNorm."
+        ]
+      ]
+    },
+    "formula": "\\operatorname{LayerNorm}(x) = \\gamma\\odot\\frac{x-\\mu}{\\sqrt{\\sigma^2+\\varepsilon}}+\\beta\n\\operatorname{RMSNorm}(x) = \\gamma\\odot\\frac{x}{\\sqrt{\\operatorname{mean}(x^2)+\\varepsilon}}",
+    "notation": "Statistics use the chosen normalization axes; γ and β are learned, ε stabilizes division."
   },
   {
-    "group": "Transformers",
-    "q": "What does KV caching save?",
-    "a": "During autoregressive decoding, reuse old keys and values instead of recomputing them. Each new query still attends to the available context. Cache memory per token is 2\u00d7layers\u00d7KV_heads\u00d7head_dim\u00d7bytes, per sequence; query heads may differ under GQA.",
-    "follow": "Why cache K and V but usually not old Q?"
+    "group": "Deep learning",
+    "q": "Dropout, eval and no_grad?",
+    "a": "Dropout randomly removes activations during training with compensating scaling. model.eval changes behavior of modules such as dropout and BatchNorm; it does not disable autograd. no_grad disables graph recording but does not switch module mode.",
+    "follow": "What goes wrong if validation runs in train mode?",
+    "subgroup": "Architecture & regularization"
   },
   {
-    "group": "Transformers",
-    "q": "Attention cost and FlashAttention?",
-    "a": "Dense attention interactions scale quadratically with sequence length. FlashAttention uses tiled exact attention to reduce memory traffic and avoid materializing the full attention matrix; it does not make dense attention mathematically linear-time.",
-    "follow": "How do prefill and one-token decode differ?"
+    "group": "Deep learning",
+    "subgroup": "Architecture & regularization",
+    "q": "ReLU versus sigmoid, tanh and GELU?",
+    "a": "Sigmoid and tanh saturate, shrinking derivatives at large magnitudes. ReLU is simple and avoids positive-side saturation but has zero gradient for negative inputs. GELU smoothly weights inputs by magnitude and is common in Transformer feed-forward layers.",
+    "nuance": "Use sigmoid for an independent binary probability and softmax for mutually exclusive classes; hidden-layer activation choice is a different decision. Stacking only affine layers collapses to one affine map, so nonlinearities create additional expressiveness."
   },
   {
-    "group": "Transformers",
-    "q": "Fine-tuning, LoRA or RAG?",
-    "a": "Fine-tuning changes model behavior/weights; LoRA trains low-rank updates to selected weights. RAG supplies retrieved context at inference and supports updating knowledge separately. They can be combined; assess answer quality and retrieval quality separately.",
-    "follow": "When is prompt engineering enough?"
+    "group": "Deep learning",
+    "subgroup": "Architecture & regularization",
+    "q": "Residual connections versus normalization?",
+    "a": "A residual connection adds the input to a learned transformation: y = x + F(x). It provides a direct path for information and gradients. Normalization controls activation scale along specified axes. They solve related optimization problems but are not interchangeable.",
+    "nuance": "The addition requires compatible shapes; use a projection when widths differ. A residual path helps train deep networks but does not guarantee nonvanishing gradients or good generalization."
   },
   {
-    "group": "ML basics",
-    "q": "When are linear regression assumptions needed?",
-    "a": "Least squares does not require normally distributed input features. Full column rank gives a unique coefficient solution; zero conditional mean errors support unbiasedness. Homoscedasticity and uncorrelated errors underpin classical variance formulas; normal errors support exact small-sample inference. Prediction can still be useful when inferential assumptions fail.",
-    "follow": "What changes with heteroscedastic errors?"
-  },
-  {
-    "group": "ML basics",
-    "q": "How do you handle missing and categorical features?",
-    "a": "Fit imputers and encoders on training data only. Consider missingness indicators when absence is informative. One-hot encoding suits low cardinality; hashing bounds memory but creates collisions; embeddings learn compact representations. Target encoding requires out-of-fold construction to avoid leakage.",
-    "follow": "When would median imputation hide an important signal?"
-  },
-  {
-    "group": "ML basics",
-    "q": "PCA, LDA and feature selection?",
-    "a": "PCA finds orthogonal directions of maximum variance without labels; discriminant LDA uses labels to separate classes. Neither guarantees better downstream predictions. Filter selection scores features independently of a fitted predictor; wrappers search feature subsets using validation; embedded selection occurs during training, as with L1. L2 usually shrinks rather than selects exact zeros.",
-    "follow": "Why fit dimensionality reduction inside each validation fold?"
-  },
-  {
-    "group": "ML basics",
+    "group": "Embeddings & representation learning",
     "q": "What if labels are scarce?",
     "a": "Transfer learning reuses representations; weak supervision combines noisy labeling sources; semi-supervised methods exploit unlabeled examples. Pseudo-labels can reinforce mistakes, so use confidence controls and a genuinely labeled held-out set. Augmentation must preserve the target semantics.",
-    "follow": "How do you assess correlated weak labeling sources?"
+    "follow": "How do you assess correlated weak labeling sources?",
+    "subgroup": "Representations & supervision"
   },
   {
-    "group": "ML basics",
-    "q": "How do you calibrate a classifier?",
-    "a": "Calibration asks whether predictions near 0.8 are correct about 80% of the time. Inspect reliability plots, log loss or Brier score, and subgroup behavior. Fit Platt scaling or isotonic regression on disjoint calibration data. Resampling or class weighting can change probabilities; validate calibration under the serving distribution.",
-    "follow": "Can calibration improve while AUC stays unchanged?"
+    "group": "Embeddings & representation learning",
+    "subgroup": "Representations & supervision",
+    "q": "What is an embedding, and what does its geometry mean?",
+    "a": "An embedding maps an object to a vector. Token lookup tables, contextual token states and pooled sentence/document vectors are different representations. Closeness is meaningful only relative to the training objective: topic similarity is not necessarily query–answer relevance.",
+    "nuance": "For example, “how to cancel” and “how to renew” may be linguistically similar but require different evidence. For retrieval, train and evaluate the geometry around relevance rather than assuming any language-model hidden state is a good search vector."
   },
   {
-    "group": "ML basics",
-    "q": "Data drift versus concept drift?",
-    "a": "Data drift changes the input distribution P(X); concept drift changes P(y|X). Covariate drift alone need not reduce quality. Monitor input health and delayed outcome metrics, check logging and seasonality, then determine whether retraining addresses the actual cause.",
-    "follow": "What can you detect before labels arrive?"
+    "group": "Embeddings & representation learning",
+    "subgroup": "Representations & supervision",
+    "q": "How do you train useful retrieval embeddings?",
+    "a": "Start from a pretrained text encoder. Build representative query–relevant-document pairs, split by document/entity/time to limit leakage, and learn a pooled vector using a retrieval objective. Include realistic distractors, then validate recall@K and downstream answer quality on held-out queries.",
+    "nuance": "Keep the pooling, normalization, truncation and query/document prompts consistent between training and indexing. Changing the encoder generally requires re-embedding the corpus and rebuilding the index; mixing incompatible vector spaces breaks similarity search."
   },
   {
-    "group": "ML basics",
-    "q": "ARMA, ARIMA and stationarity?",
-    "a": "ARMA typically models a stationary series; ARIMA incorporates differencing to address nonstationarity. The ADF test has a unit-root null: a small p-value is evidence against that null, not a generic proof of every kind of stationarity. Evaluate with time-ordered backtests and account for seasonality.",
-    "follow": "Why can ordinary shuffled cross-validation mislead?"
+    "group": "Embeddings & representation learning",
+    "subgroup": "Representations & supervision",
+    "q": "Bi-encoder versus cross-encoder versus late interaction?",
+    "a": "A bi-encoder separately embeds queries and documents, enabling precomputed vectors and fast approximate search. A cross-encoder jointly processes each query–document pair, allowing richer token interactions at a higher per-pair cost. Late interaction retains token vectors and aggregates token-level matches.",
+    "comparison": {
+      "headers": [
+        "Approach",
+        "Typical role",
+        "Cost / limitation"
+      ],
+      "rows": [
+        [
+          "Bi-encoder / two-tower",
+          "Retrieve from a large corpus.",
+          "One compact vector may lose fine detail."
+        ],
+        [
+          "Cross-encoder",
+          "Rerank a smaller candidate set.",
+          "Cannot precompute a universal query-independent relevance score."
+        ],
+        [
+          "Late interaction",
+          "Retrieve or rerank with richer matching.",
+          "More storage and scoring work than one vector per document."
+        ]
+      ]
+    },
+    "nuance": "Two-tower models may share encoder weights or use separate encoders. Query–document relevance is often asymmetric, even if the final score is a symmetric dot product.",
+    "sources": [
+      {
+        "title": "Sentence-BERT",
+        "url": "https://arxiv.org/abs/1908.10084"
+      },
+      {
+        "title": "ColBERT",
+        "url": "https://arxiv.org/abs/2004.12832"
+      }
+    ]
   },
   {
-    "group": "ML basics",
-    "q": "Does k-means converge to the global optimum?",
-    "a": "Standard Lloyd updates do not increase the squared-Euclidean objective. With consistent tie and empty-cluster handling they reach a fixed assignment/local solution, not necessarily the global optimum. The joint problem is nonconvex; initialization and multiple restarts matter. Absolute-distance clustering generally needs medians, not mean updates.",
-    "follow": "What does k-means++ improve?"
+    "group": "Embeddings & representation learning",
+    "subgroup": "Contrastive objectives & negatives",
+    "q": "What is contrastive learning?",
+    "a": "Train an anchor to be close to positive examples and distinguishable from negatives. In self-supervised learning, two augmentations can define a positive pair; in supervised contrastive learning, labels define which examples are positives. Retrieval can use a query and relevant passage as a pair.",
+    "nuance": "The positive definition teaches the desired invariances. An augmentation that removes a negation or changes the answer can teach the wrong similarity. Not all representation learning uses negatives: reconstruction, distillation and noncontrastive methods are alternatives.",
+    "sources": [
+      {
+        "title": "SimCLR",
+        "url": "https://arxiv.org/abs/2002.05709"
+      },
+      {
+        "title": "Supervised Contrastive Learning",
+        "url": "https://arxiv.org/abs/2004.11362"
+      }
+    ]
   },
   {
-    "group": "ML basics",
-    "q": "What happens to logistic regression on separable data?",
-    "a": "Without regularization, perfectly separable classes can drive coefficients toward infinity: the likelihood supremum need not occur at finite weights. Regularization gives a controlled solution. This does not imply kNN is universally preferable.",
-    "follow": "What does stronger L2 do to the predicted probabilities?"
+    "group": "Embeddings & representation learning",
+    "subgroup": "Contrastive objectives & negatives",
+    "q": "InfoNCE / in-batch contrastive loss: what is optimized?",
+    "a": "Treat matching the anchor to its positive as a classification problem over candidate positives and negatives. For a batch of N query–positive pairs, each query scores all N documents; off-diagonal documents act as negatives.",
+    "formula": "\\mathcal{L}_i = -\\log\\frac{\\exp\\!\\left(s(q_i,d_i)/\\tau\\right)}{\\sum_{j=1}^N\\exp\\!\\left(s(q_i,d_j)/\\tau\\right)}\n\\mathcal{L} = \\frac{1}{N}\\sum_{i=1}^N\\mathcal{L}_i",
+    "notation": "s is a similarity score; τ > 0 is temperature. The denominator includes the positive. With multiple relevant documents, define a multi-positive loss or mask false negatives.",
+    "nuance": "Lower temperature sharpens the distribution and emphasizes high-scoring mistakes; it is not unconditionally better. More batch candidates offer more discrimination but also more false negatives. Symmetric query→document and document→query losses are optional, task-dependent choices.",
+    "sources": [
+      {
+        "title": "MultipleNegativesRankingLoss",
+        "url": "https://www.sbert.net/docs/package_reference/sentence_transformer/losses.html"
+      }
+    ]
   },
   {
-    "group": "ML basics",
-    "q": "MRR, MAP, NDCG and MMR?",
-    "a": "MRR averages the reciprocal rank of the first relevant result. MAP considers precision at relevant ranks across the result list. NDCG discounts graded relevance by position and normalizes by the ideal ranking. MMR is a relevance\u2013redundancy reranking strategy, not mean reciprocal rank.",
-    "follow": "Which metric fits a query with several required evidence documents?"
+    "group": "Embeddings & representation learning",
+    "subgroup": "Contrastive objectives & negatives",
+    "q": "Triplet loss versus contrastive softmax?",
+    "a": "Triplet loss asks an anchor to be closer to a positive than to a negative by a margin. A softmax contrastive objective compares an anchor against a candidate set and continues to calibrate relative scores. Both depend heavily on the examples selected.",
+    "formula": "\\mathcal{L}_{\\mathrm{triplet}} = \\max\\!\\left(0,\\,d(a,p)-d(a,n)+m\\right)",
+    "notation": "\\(m>0\\) is a margin; \\(d(\\cdot,\\cdot)\\) is the chosen distance. State whether it is Euclidean, squared Euclidean or another metric.",
+    "nuance": "An easy triplet beyond the margin gives zero loss and gradient. Very hard negatives may be mislabeled positives. Contrastive training is not automatically superior if the supervision or candidate construction is wrong."
   },
   {
-    "group": "ML basics",
-    "q": "Micro versus macro metrics for multilabel tasks?",
-    "a": "Micro aggregation pools label decisions before computing a metric; macro averages per-label scores, giving rare labels equal weight. Subset accuracy requires the entire label set to match. Independent sigmoid outputs with BCE are a common baseline; label dependencies can motivate richer models.",
-    "follow": "When would a good micro score hide a failed rare label?"
+    "group": "Embeddings & representation learning",
+    "subgroup": "Contrastive objectives & negatives",
+    "q": "Random, hard and false negatives?",
+    "a": "Random negatives are often easy. Hard negatives look similar to the query but are actually irrelevant, such as the right product with the wrong version. Mine them using an existing retriever, then filter or label them. A false negative is relevant material mistakenly pushed away.",
+    "nuance": "Use a mix of difficulty levels, remove duplicates and inspect the hardest cases. A guide model or human labels can filter likely false negatives but are not perfect ground truth. Unclicked impressions are not guaranteed irrelevant.",
+    "sources": [
+      {
+        "title": "Hard-negative mining",
+        "url": "https://sbert.net/docs/package_reference/util/hard_negatives.html"
+      }
+    ]
   },
   {
-    "group": "ML basics",
-    "q": "How do you test an ML pipeline beyond accuracy?",
-    "a": "Test schemas, null rates, label quality, feature transformations, point-in-time joins and training/serving parity. Use ablations to test feature value, perturbations for robustness and justified invariances for expected behavior. Trace examples end to end and compare to a simple baseline.",
-    "follow": "What would you inspect first after a sudden quality regression?"
+    "group": "Embeddings & representation learning",
+    "subgroup": "Geometry & evaluation",
+    "q": "Cosine similarity versus dot product versus Euclidean distance?",
+    "a": "Dot product depends on direction and vector magnitude. Cosine removes magnitude by normalizing both vectors. Euclidean distance measures straight-line separation. On unit-normalized vectors, maximizing cosine or dot product is equivalent to minimizing squared Euclidean distance.",
+    "formula": "\\cos(u,v) = \\frac{u^\\top v}{\\lVert u\\rVert_2\\,\\lVert v\\rVert_2}\n\\lVert u\\rVert_2=\\lVert v\\rVert_2=1\\quad\\Longrightarrow\\quad\\lVert u-v\\rVert_2^2=2-2u^\\top v",
+    "nuance": "A zero vector needs an explicit policy before normalization. Norms may encode useful confidence or popularity, so removing them changes the task. Match the ANN index metric to the trained scoring function."
   },
   {
-    "group": "ML basics",
-    "q": "Shadow, canary and blue-green deployment?",
-    "a": "Shadow traffic exercises a new model without changing user-facing decisions. Canary exposes a limited cohort and ramps after checks. Blue-green retains two environments for switching and rollback; it is not inherently an A/B experiment. Randomized experiments need separate assignment and measurement design.",
-    "follow": "How do you ensure a shadow model cannot cause tool side effects?"
+    "group": "Embeddings & representation learning",
+    "subgroup": "Geometry & evaluation",
+    "q": "Pooling, collapse and embedding evaluation?",
+    "a": "Convert token states to one vector using a trained CLS representation, masked mean pooling or another task-trained pooler. Mean pooling must ignore padding. Collapse maps unrelated inputs to nearly identical vectors; inspect vector norms, variance and similarity distributions.",
+    "nuance": "Unsupervised SimCSE uses independent dropout views of the same sentence as positives. Its results illustrate why the training signal and noise matter; pooling an arbitrary language model is not equivalent to training a sentence encoder. Evaluate retrieval by domain, length, language and rare entities, then check ANN recall against exact search.",
+    "sources": [
+      {
+        "title": "SimCSE",
+        "url": "https://arxiv.org/abs/2104.08821"
+      }
+    ]
+  },
+  {
+    "group": "Tokenizers & Transformers",
+    "subgroup": "Tokenization & language-model objectives",
+    "q": "What is a tokenizer, and what is its goal?",
+    "a": "A tokenizer converts text into a sequence of discrete token IDs that a model can consume. It balances vocabulary size, sequence length and coverage of rare strings or languages. Tokens are not necessarily words, characters or semantic units; the embedding lookup happens after tokenization.",
+    "nuance": "The pipeline can include normalization, pre-tokenization, subword segmentation and special tokens. Decoding recovers text under that pipeline’s rules; normalization can discard information. IDs are arbitrary vocabulary indices, not numerical measures of similarity.",
+    "sources": [
+      {
+        "title": "Tokenizer components",
+        "url": "https://huggingface.co/docs/tokenizers/python/latest/components.html"
+      }
+    ]
+  },
+  {
+    "group": "Tokenizers & Transformers",
+    "subgroup": "Tokenization & language-model objectives",
+    "q": "BPE versus WordPiece versus Unigram?",
+    "a": "All three split text into reusable subword units, but learn or select pieces differently. Vocabulary training is usually separate from neural-model weight training.",
+    "comparison": {
+      "headers": [
+        "Algorithm",
+        "Vocabulary / segmentation idea",
+        "Useful distinction"
+      ],
+      "rows": [
+        [
+          "BPE",
+          "Repeatedly merge frequent adjacent symbol pairs; apply learned merges.",
+          "Byte-level BPE starts from bytes and can represent arbitrary text without an unknown token."
+        ],
+        [
+          "WordPiece",
+          "Common accounts score merges by association relative to piece frequencies; tokenize with longest matching pieces.",
+          "Greedy segmentation is different from replaying BPE merges; exact training implementations vary."
+        ],
+        [
+          "Unigram",
+          "Begin with a candidate vocabulary and prune under a probabilistic model; choose a likely segmentation.",
+          "Can support multiple segmentations and sampling rather than one fixed merge path."
+        ]
+      ]
+    },
+    "nuance": "SentencePiece is a tokenizer toolkit, not a synonym for Unigram; it supports BPE too. Byte fallback is a configuration choice, not a guarantee of every subword tokenizer.",
+    "sources": [
+      {
+        "title": "BPE",
+        "url": "https://huggingface.co/learn/llm-course/chapter6/5"
+      },
+      {
+        "title": "WordPiece",
+        "url": "https://huggingface.co/learn/llm-course/chapter6/6"
+      },
+      {
+        "title": "Unigram",
+        "url": "https://huggingface.co/learn/llm-course/chapter6/7"
+      }
+    ]
+  },
+  {
+    "group": "Tokenizers & Transformers",
+    "subgroup": "Tokenization & language-model objectives",
+    "q": "Why does tokenization affect cost and quality?",
+    "a": "More tokens mean less text fits into a fixed context window and more attention and decoding work. A larger vocabulary can shorten sequences but enlarges embedding/output tables and softmax work. Different languages, code and numbers may fragment very differently.",
+    "nuance": "Count tokens with the model’s exact tokenizer, including chat-template special tokens. Token IDs and embedding rows must stay aligned; swapping tokenizers is not a harmless preprocessing change. Compare perplexity only with compatible tokenization and evaluation conventions."
+  },
+  {
+    "group": "Tokenizers & Transformers",
+    "subgroup": "Tokenization & language-model objectives",
+    "q": "Causal language modeling versus masked language modeling?",
+    "a": "Causal language modeling predicts the next token from the preceding prefix. Masked language modeling predicts selected hidden tokens using the visible surrounding context. A standard causal loss is teacher-forced: each position sees ground-truth earlier tokens during training.",
+    "formula": "\\mathcal{L}_{\\mathrm{causal}} = -\\frac{1}{N}\\sum_t\\log P(x_t\\mid x_1,\\ldots,x_{t-1})\n\\mathrm{Perplexity} = \\exp\\!\\left(\\mathcal{L}_{\\mathrm{causal}}\\right)",
+    "notation": "The prefix contains only earlier tokens. N counts scored tokens, excluding ignored padding; exponentiation assumes natural logarithms.",
+    "nuance": "At generation time, the model conditions on its own outputs, so errors can compound. Encoder–decoder models use bidirectional source attention and causal target attention, with cross-attention connecting them."
+  },
+  {
+    "group": "Tokenizers & Transformers",
+    "q": "Derive attention and shapes.",
+    "a": "For input X with shape (B, T, E), project Q and K to \\((B,T,d_k)\\), and V to \\((B,T,d_v)\\). Scores and attention weights have shape (B, T, T). Softmax runs across key positions; weighted values produce \\((B,T,d_v)\\).",
+    "follow": "Why divide by \\(\\sqrt{d_k}\\)?",
+    "subgroup": "Attention & block structure",
+    "formula": "\\operatorname{Attention}(Q,K,V) = \\operatorname{softmax}\\!\\left(\\frac{QK^\\top}{\\sqrt{d_k}}+M\\right)V",
+    "notation": "Transpose only the final two axes of K. M is an additive mask: 0 for allowed pairs, −∞ for masked pairs.",
+    "nuance": "If query/key coordinates are independent with unit variance, their dot product has variance dₖ. Dividing by \\(\\sqrt{d_k}\\) keeps initial logits from growing with head width and saturating softmax.",
+    "sources": [
+      {
+        "title": "Attention Is All You Need",
+        "url": "https://arxiv.org/abs/1706.03762"
+      }
+    ]
+  },
+  {
+    "group": "Tokenizers & Transformers",
+    "q": "Causal versus padding masks?",
+    "a": "Causal masks prevent attending to future tokens; padding masks exclude padding keys. Apply masks to logits before softmax, typically with negative infinity. Define behavior for fully masked rows to avoid NaNs.",
+    "follow": "Why does multiplying logits by zero not mask them?",
+    "subgroup": "Attention & block structure"
+  },
+  {
+    "group": "Tokenizers & Transformers",
+    "q": "What makes a Transformer block?",
+    "a": "Multi-head attention combines learned attention subspaces; a position-wise feed-forward network transforms features. Residual connections and normalization stabilize depth. Position information is required because unpositioned self-attention is permutation equivariant.",
+    "follow": "Contrast encoder self-attention, decoder masked attention and cross-attention.",
+    "subgroup": "Attention & block structure",
+    "formula": "H = X + \\operatorname{Attention}(\\operatorname{LayerNorm}(X))\nY = H + \\operatorname{FFN}(\\operatorname{LayerNorm}(H))",
+    "notation": "This is pre-norm, omitting dropout. The attention output projection returns to the residual width. FFN typically expands then contracts each token’s features.",
+    "nuance": "Pre-norm keeps an identity residual path and often eases optimization at depth. Post-norm normalizes after the residual addition. Neither ordering replaces positional information.",
+    "sources": [
+      {
+        "title": "Transformer reference",
+        "url": "https://d2l.ai/chapter_attention-mechanisms-and-transformers/transformer.html"
+      }
+    ]
+  },
+  {
+    "group": "Tokenizers & Transformers",
+    "subgroup": "Attention & block structure",
+    "q": "Self-attention versus cross-attention; encoder versus decoder?",
+    "a": "Self-attention derives Q, K and V from the same sequence. Cross-attention takes Q from one sequence and K/V from another; query and key sequence lengths can differ. An encoder commonly uses bidirectional self-attention, while a generative decoder uses a causal mask.",
+    "nuance": "“Decoder-only” models have causal self-attention but typically no encoder cross-attention. Multi-head attention uses multiple projected subspaces, concatenates head outputs, then projects back to model width."
+  },
+  {
+    "group": "Tokenizers & Transformers",
+    "subgroup": "Attention & block structure",
+    "q": "Absolute positions versus RoPE?",
+    "a": "Absolute positional embeddings add a position-dependent vector to token representations. Rotary position embeddings rotate query/key coordinate pairs according to position so their dot products encode relative offsets. Attention without position information cannot generally distinguish reordered inputs.",
+    "nuance": "RoPE does not by itself guarantee reliable extrapolation beyond training length. Changing position scaling, extending the context and validating long-distance retrieval are separate considerations.",
+    "sources": [
+      {
+        "title": "RoFormer / RoPE",
+        "url": "https://arxiv.org/abs/2104.09864"
+      }
+    ]
+  },
+  {
+    "group": "Tokenizers & Transformers",
+    "q": "What does KV caching save?",
+    "a": "During autoregressive decoding, reuse old keys and values instead of recomputing them. Each new query still attends to the available context. Cache memory per token is 2×layers×KV_heads×head_dim×bytes, per sequence; query heads may differ under GQA.",
+    "follow": "Why cache K and V but usually not old Q?",
+    "subgroup": "Efficient attention & inference",
+    "formula": "\\text{KV bytes} \\approx 2\\,B\\,T\\,L\\,H_{\\mathrm{KV}}\\,d_h\\,b_{\\mathrm{elem}}",
+    "notation": "\\(B\\) = batch size, \\(T\\) = cached tokens, \\(L\\) = layers, \\(H_{\\mathrm{KV}}\\) = KV heads, \\(d_h\\) = head width, \\(b_{\\mathrm{elem}}\\) = bytes per stored element. Excludes weights, activations and allocator overhead.",
+    "nuance": "Old Q is unnecessary because only the new token’s output is being computed. Cache reuse requires a matching prefix, model and position/mask convention; training usually processes full sequences without this decode cache."
+  },
+  {
+    "group": "Tokenizers & Transformers",
+    "q": "Attention cost and FlashAttention?",
+    "a": "Dense attention interactions scale quadratically with sequence length. FlashAttention uses tiled exact attention to reduce memory traffic and avoid materializing the full attention matrix; it does not make dense attention mathematically linear-time.",
+    "follow": "How do prefill and one-token decode differ?",
+    "subgroup": "Efficient attention & inference",
+    "nuance": "Prefill processes the prompt in parallel; decode produces one token at a time and often becomes memory-bandwidth limited. Dense prefill attention is \\(O(T^2d)\\); each decode step attends over T cached tokens in \\(O(Td)\\) per head.",
+    "sources": [
+      {
+        "title": "FlashAttention paper",
+        "url": "https://arxiv.org/abs/2205.14135"
+      }
+    ]
+  },
+  {
+    "group": "Tokenizers & Transformers",
+    "subgroup": "Efficient attention & inference",
+    "q": "MHA versus MQA versus GQA?",
+    "a": "Multi-head attention gives each query head its own key/value head. Multi-query attention shares one KV head across all query heads. Grouped-query attention shares a KV head within each group of query heads, trading cache bandwidth and capacity between those extremes.",
+    "nuance": "GQA reduces KV storage, not the number of query heads. It still attends to explicit previous token positions; it is not a recurrent compression of the whole sequence.",
+    "sources": [
+      {
+        "title": "Grouped-query attention",
+        "url": "https://arxiv.org/abs/2305.13245"
+      }
+    ]
+  },
+  {
+    "group": "Tokenizers & Transformers",
+    "subgroup": "Efficient attention & inference",
+    "q": "Softmax, sparse and linear attention: what changes?",
+    "a": "Dense softmax attention compares each query with every allowed key. Sparse or sliding-window attention restricts which token pairs interact. Recurrent linear attention summarizes earlier keys/values in a fixed-size state for fixed head dimensions, changing the representation of history.",
+    "comparison": {
+      "headers": [
+        "Approach",
+        "What is saved",
+        "What stays / changes"
+      ],
+      "rows": [
+        [
+          "FlashAttention",
+          "Memory traffic and materialized score storage.",
+          "Computes dense softmax attention; quadratic pairwise work remains."
+        ],
+        [
+          "Sliding-window attention",
+          "Only a bounded neighborhood is scored per layer.",
+          "Distant access needs propagation, global tokens or other mechanisms."
+        ],
+        [
+          "Recurrent linear attention",
+          "No growing token-by-token cache in those layers.",
+          "Compresses history; it is not identical to softmax and may lose fine-grained recall."
+        ]
+      ]
+    },
+    "nuance": "“Linear” is scaling in sequence length with width held fixed, not a linear function of the input. Parallel chunk algorithms can train recurrent-style layers efficiently; a mathematical recurrence need not imply a fully sequential training kernel.",
+    "sources": [
+      {
+        "title": "FlashAttention",
+        "url": "https://arxiv.org/abs/2205.14135"
+      },
+      {
+        "title": "Transformers are RNNs: linear attention",
+        "url": "https://arxiv.org/abs/2006.16236"
+      }
+    ]
+  },
+  {
+    "group": "Tokenizers & Transformers",
+    "subgroup": "Efficient attention & inference",
+    "q": "What is Kimi Delta Attention (KDA)?",
+    "a": "KDA is a gated recurrent linear-attention mechanism. Its memory stores key–value associations; a delta-rule update writes a correction to the value currently predicted for a key. KDA adds feature-wise forgetting, finer-grained than a single scalar decay per head.",
+    "formula": "\\text{Ungated delta-rule intuition:}\nS_t = S_{t-1} + \\beta_t\\left(v_t-S_{t-1}k_t\\right)k_t^\\top\no_t = S_tq_t",
+    "notation": "Use column vectors and S of shape \\((d_v,d_k)\\). \\(\\beta_t\\) controls the write. This is the ungated intuition, not the full KDA equation.",
+    "nuance": "Kimi Linear (2025) interleaves three KDA layers with one full-attention MLA layer. KDA layers keep fixed-size state, but the hybrid still has growing caches in its full-attention layers. Compressed memory trades exact historical access for efficiency; this is an architecture change, unlike FlashAttention’s exact-attention kernel optimization.",
+    "sources": [
+      {
+        "title": "Kimi Linear technical report, §§2–4",
+        "url": "https://arxiv.org/html/2510.26692v1"
+      }
+    ]
+  },
+  {
+    "group": "Tokenizers & Transformers",
+    "q": "Fine-tuning, LoRA or RAG?",
+    "a": "Fine-tuning changes model behavior/weights; LoRA trains low-rank updates to selected weights. RAG supplies retrieved context at inference and supports updating knowledge separately. They can be combined; assess answer quality and retrieval quality separately.",
+    "follow": "When is prompt engineering enough?",
+    "subgroup": "Training objectives & adaptation",
+    "nuance": "LoRA reduces trainable parameters and optimizer state, but the frozen base weights still need to be stored or quantized. RAG cannot fix a model that consistently ignores supplied evidence; fine-tuning cannot guarantee fresh facts.",
+    "sources": [
+      {
+        "title": "LoRA paper",
+        "url": "https://arxiv.org/abs/2106.09685"
+      }
+    ]
+  },
+  {
+    "group": "Tokenizers & Transformers",
+    "subgroup": "Training objectives & adaptation",
+    "q": "Pretraining versus SFT versus preference optimization?",
+    "a": "Pretraining learns broad patterns from a large corpus. Supervised fine-tuning (SFT) learns desired responses from demonstrations. Preference optimization uses comparisons or rewards to favor better responses; DPO learns directly from chosen/rejected pairs, while RL methods optimize rewards through policy updates.",
+    "nuance": "Better preference scores do not guarantee factuality or task success. The preference data, rubric and reward model can be biased or exploitable; keep held-out task evaluations and inspect regressions.",
+    "sources": [
+      {
+        "title": "Direct Preference Optimization",
+        "url": "https://arxiv.org/abs/2305.18290"
+      }
+    ]
+  },
+  {
+    "group": "Tokenizers & Transformers",
+    "subgroup": "Training objectives & adaptation",
+    "q": "Temperature versus top-k versus top-p sampling?",
+    "a": "Temperature divides logits before softmax: lower values sharpen the distribution, higher values flatten it. Top-k retains a fixed number of high-probability tokens. Top-p retains a smallest high-probability set whose cumulative mass reaches a threshold, then renormalizes.",
+    "formula": "p_i(T) = \\frac{\\exp(z_i/T)}{\\sum_j\\exp(z_j/T)},\\qquad T>0",
+    "nuance": "Greedy decoding takes the maximum directly rather than dividing by zero. Sampling temperature is a decoding choice; contrastive-loss temperature shapes a training objective. Reducing randomness does not guarantee truth or globally optimal sequences."
   }
 ]

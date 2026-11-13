@@ -1,6 +1,6 @@
 # AI / ML Interview Guide
 
-A static study site with Design, Coding, ML Theory and ML Coding sections.
+A static study site with ML Design, Coding, ML Theory and ML Coding sections.
 
 Open `docs/index.html` locally (or use the `START_HERE.html` shortcut). No server, npm installation or API keys are needed. Checklist progress stays in the current browser; it does not sync across devices or domains.
 
@@ -17,8 +17,7 @@ The published folder contains `index.html`, `.nojekyll`, and the Python files li
 ## Edit and rebuild
 
 - `study-hub/`: HTML templates, styling, JavaScript, reference designs and SVG diagrams.
-- `curriculum/`: theory questions and progressive coding prompts.
-- `coding/industry_assessment/`: collected exercise drafts (not official assessment solutions).
+- `curriculum/`: theory reading sections.
 - `ml_coding/`: compact examples and optional advanced labs, with tests.
 - `scripts/build_study_hub.py`: shared outline, LeetCode list and site builder.
 - `docs/`: generated publishing output; commit this after rebuilding.
@@ -31,6 +30,8 @@ deno run --allow-read scripts/check_study_hub.mjs
 python3 -m pytest ml_coding/ -q
 ```
 
+Equations use LaTeX rendered by the bundled KaTeX library, with local fonts for offline use. Edit `formula` fields in `curriculum/ml_theory.json` using LaTeX (one equation per line); use `\(...\)` for inline math in prose.
+
 The build itself needs only standard-library Python. Update source files, rebuild, and push the source and `docs/` changes. Pages redeploys automatically on pushes to its configured branch.
 
-Reference implementations are educational. Collected industry-assessment files contain draft variants and top-level examples; read them before running. Reconstructed prompts are labeled and may differ from those drafts. No company affiliation or official question attribution is implied.
+Reference implementations are educational. No company affiliation or official question attribution is implied.

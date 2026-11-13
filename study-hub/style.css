@@ -444,3 +444,50 @@ pre code { background: transparent; padding: 0; color: inherit; }
 
 /* Reading-first design layout and offline syntax colors. */
 .framework-list {max-width:900px;padding-left:26px}.framework-list>li{padding:12px 0;border-bottom:1px solid #e3e7ec}.framework-list h3{margin:0 0 8px}.framework-list ul{line-height:1.8}.design-list{display:block}.design-list .fw-card{border:0;border-bottom:1px solid #e3e7ec;border-radius:0;margin-bottom:12px}.diagram{overflow-x:auto;margin:24px 0}.diagram svg{display:block;width:100%;min-width:760px;height:auto}pre{background:#f5f7fb!important;color:#23334b!important;line-height:1.65;tab-size:4}.syntax-keyword{color:#7337a3;font-weight:600}.syntax-string{color:#166941}.syntax-comment{color:#5d6879;font-style:italic}.syntax-number{color:#a34519}section{margin-bottom:28px}.tabs{flex-wrap:wrap}
+
+/* Theory is a continuous chapter, with no answer accordions. */
+.theory-reader { max-width: 850px; margin: 0 auto; }
+.theory-reader h1 { font-size: 28px; letter-spacing: -.6px; margin: 0 0 12px; }
+.theory-intro { font-size: 16px; color: var(--sub); }
+.theory-toc { margin: 26px 0; padding: 20px 24px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+.theory-toc h2 { margin: 0 0 10px; font-size: 17px; }
+.theory-toc ol { margin: 0; padding-left: 22px; }
+.theory-toc ol > li { margin: 12px 0; font-weight: 600; }
+.theory-toc ul { display: flex; flex-wrap: wrap; gap: 4px 18px; list-style: none; padding: 3px 0 0; font-size: 13px; font-weight: 400; }
+.theory-toc ul a { color: var(--sub); }
+.theory-section { margin-top: 48px; }
+.theory-section > h2 { font-size: 24px; letter-spacing: -.4px; border-bottom: 2px solid var(--line-strong); padding-bottom: 12px; }
+.theory-section-number { color: var(--muted); }
+.theory-subsection { margin-top: 32px; }
+.theory-subsection > h3 { font-size: 18px; color: var(--teal); margin: 0 0 6px; }
+.theory-section, .theory-subsection { scroll-margin-top: 120px; }
+.theory-topic { padding: 20px 0; border-bottom: 1px solid var(--line); }
+.theory-topic:last-child { border-bottom: 0; }
+.theory-topic h4 { font-size: 16px; margin: 0 0 10px; }
+.theory-topic p { margin: 10px 0; line-height: 1.8; }
+.theory-formula { background: var(--card); border-left: 3px solid var(--accent); padding: 14px 18px; margin: 16px 0 8px; overflow-x: auto; font-size: 16px; }
+.theory-formula > div { white-space: nowrap; }
+.theory-formula .katex-display { margin: .7em 0; text-align: left; }
+.theory-formula .katex-display > .katex { text-align: left; }
+.theory-formula .katex { font-size: 1.12em; }
+.theory-notation, .theory-follow { color: var(--sub); font-size: 13.5px; }
+.theory-sources { font-size: 12.5px; color: var(--muted); }
+.theory-topic .clean-table-wrap { margin: 16px 0; }
+.theory-topic tbody th { background: #fff; font-size: 13.5px; color: var(--ink); min-width: 120px; }
+.theory-topic table { min-width: 560px; }
+.theory-reader a:focus-visible, .theory-reader [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 600px) {
+  .theory-toc { padding: 16px; }
+  .theory-toc ul { display: block; }
+  .theory-toc ul li { margin: 4px 0; }
+  .theory-section > h2 { font-size: 21px; }
+  .theory-formula { padding: 10px 12px; font-size: 16px; }
+}
+@media print {
+  .theory-toc, .theory-reader > a { display: none; }
+  .theory-reader { max-width: none; }
+  .theory-topic h4, .theory-subsection > h3 { break-after: avoid; }
+  .theory-formula { overflow: visible; }
+  .theory-formula > div { white-space: normal; }
+  .theory-topic table { min-width: 0; }
+}

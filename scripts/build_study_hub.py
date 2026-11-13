@@ -232,7 +232,6 @@ def build() -> None:
         
         "mlFiles": load_files(ML_FILES),
         
-        "industryTasks": [{**task, "code": (ROOT / task["path"]).read_text()} for task in json.loads((ROOT / "curriculum/industry_assessment.json").read_text())],
     }
 
     shell = (ROOT / "study-hub/shell.html").read_text()
@@ -247,9 +246,10 @@ def build() -> None:
     )
     output = ROOT / "docs"
     output.mkdir(exist_ok=True)
+    shutil.copytree(ROOT / "study-hub/vendor", output / "vendor", dirs_exist_ok=True)
     (output / "index.html").write_text(out_html)
     (output / ".nojekyll").touch()
-    for item in payload["classics"] + payload["mlFiles"] + payload["industryTasks"]:
+    for item in payload["classics"] + payload["mlFiles"]:
         target = output / item["path"]
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / item["path"], target)

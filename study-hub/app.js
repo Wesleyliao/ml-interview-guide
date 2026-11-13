@@ -42,7 +42,7 @@ function renderFrameworkCards(kind) {
 }
 
 function renderDesign() {
-  return `<div class="section-head"><h2>Design approach</h2><span>Outline upfront in 60s, then choose where to zoom in</span></div>
+  return `<div class="section-head"><h2>ML Design approach</h2><span>Outline upfront in 60s, then choose where to zoom in</span></div>
     ${renderFrameworkCards('ml')}
     ${COURSE.designReferences}`;
 }
@@ -117,8 +117,65 @@ function highlightPython(source) {
   }
   return out+esc(source.slice(start));
 }
-function renderTheory(){
- return `<h2>ML Theory</h2><p>Answer aloud in 60–90 seconds, then reveal the answer and try the follow-up. These are selected core interview topics, not a measured company-frequency ranking.</p><p>Review formulation, features, evaluation and serving consistency alongside classical ML, deep learning and Transformers.</p>${['ML basics','Deep learning','Transformers'].map(group=>`<h3>${group}</h3>${COURSE.theory.filter(x=>x.group===group).map(x=>`<details class="clean-acc"><summary>${esc(x.q)}</summary><div class="acc-body"><p>${esc(x.a)}</p><p><strong>Follow-up:</strong> ${esc(x.follow)}</p></div></details>`).join('')}`).join('')}<h3>Sources and further reading</h3><ul><li><a href="https://cs229.stanford.edu/summer2022/cs229-notes5.pdf">Stanford CS229: model selection</a> — regularization and validation.</li><li><a href="https://d2l.ai/chapter_attention-mechanisms-and-transformers/transformer.html">Dive into Deep Learning: Transformers</a> — attention and block structure.</li><li><a href="https://numpy.org/doc/stable/reference/generated/numpy.linalg.lstsq.html">NumPy least squares</a> — rank-deficient systems.</li></ul>`;
+function theoryId(text) {
+  return 'theory-' + text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-$/, '');
+}
+
+function theoryMath(text, displayMode = true) {
+  return katex.renderToString(text, {
+    displayMode, throwOnError: true, trust: false,
+    strict: 'error', output: 'htmlAndMathml'
+  });
+}
+
+function theoryText(text) {
+  // Only explicit inline LaTeX is interpreted. Ordinary prose remains escaped.
+  return String(text ?? '').split(/(\\\(.*?\\\))/g).map(part =>
+    part.startsWith('\\(') && part.endsWith('\\)')
+      ? theoryMath(part.slice(2, -2), false) : esc(part)
+  ).join('');
+}
+
+function renderTheoryTopic(topic) {
+  const table = topic.comparison;
+  return `<article class="theory-topic">
+    <h4>${esc(topic.q)}</h4>
+    <p>${theoryText(topic.a)}</p>
+    ${table ? `<div class="clean-table-wrap" role="region" aria-label="${esc(topic.q)} comparison" tabindex="0"><table>
+      <thead><tr>${table.headers.map(h=>`<th scope="col">${esc(h)}</th>`).join('')}</tr></thead>
+      <tbody>${table.rows.map(row=>`<tr>${row.map((cell,i)=>i === 0 ? `<th scope="row">${esc(cell)}</th>` : `<td>${esc(cell)}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table></div>` : ''}
+    ${topic.formula ? `<div class="theory-formula" tabindex="0" role="region" aria-label="Formula">${topic.formula.split('\n').map(line=>`<div>${theoryMath(line)}</div>`).join('')}</div>` : ''}
+    ${topic.notation ? `<p class="theory-notation">${theoryText(topic.notation)}</p>` : ''}
+    ${topic.nuance ? `<p><strong>Nuance:</strong> ${theoryText(topic.nuance)}</p>` : ''}
+    ${topic.follow ? `<p class="theory-follow"><strong>Think it through:</strong> ${theoryText(topic.follow)}</p>` : ''}
+    ${topic.sources?.length ? `<p class="theory-sources">Read more: ${topic.sources.map(ref=>`<a href="${esc(ref.url)}">${esc(ref.title)}</a>`).join(' · ')}</p>` : ''}
+  </article>`;
+}
+
+function renderTheory() {
+  const groups = [...new Set(COURSE.theory.map(topic=>topic.group))];
+  const subgroups = group => [...new Set(COURSE.theory.filter(topic=>topic.group === group).map(topic=>topic.subgroup))];
+  return `<div class="theory-reader">
+    <h1>ML Theory</h1>
+    <p class="theory-intro">Read from top to bottom: foundations → evaluation → deep learning → embeddings → language models. Start with the short answer, then use the comparisons, formulas and nuances to explain the tradeoffs aloud. Everything is expanded.</p>
+    <nav class="theory-toc" aria-label="Theory contents">
+      <h2>Contents</h2>
+      <ol>${groups.map(group=>`<li><a href="#theory/${theoryId(group)}">${esc(group)}</a>
+        <ul>${subgroups(group).map(sub=>`<li><a href="#theory/${theoryId(group+' '+sub)}">${esc(sub)}</a></li>`).join('')}</ul>
+      </li>`).join('')}</ol>
+    </nav>
+    <p class="theory-notation">Notation: n = examples, d = features, B = batch size, T = sequence length; ᵀ = transpose, ∑ = sum, ‖·‖₂ = Euclidean norm, ⊙ = elementwise product. Symbols are defined locally when their meaning changes.</p>
+    ${groups.map((group,index)=>`<section class="theory-section" id="${theoryId(group)}">
+      <h2><span class="theory-section-number">${index+1}.</span> ${esc(group)}</h2>
+      ${subgroups(group).map(sub=>`<section class="theory-subsection" id="${theoryId(group+' '+sub)}">
+        <h3>${esc(sub)}</h3>
+        ${COURSE.theory.filter(topic=>topic.group === group && topic.subgroup === sub).map(renderTheoryTopic).join('')}
+      </section>`).join('')}
+    </section>`).join('')}
+    <p class="theory-sources">Foundations reference: <a href="https://cs229.stanford.edu/main_notes.pdf">Stanford CS229 notes</a>. Papers and documentation for newer methods are linked beside the relevant topics. These are study topics, not a claim about interview question frequency.</p>
+    <a href="#theory">Back to theory contents ↑</a>
+  </div>`;
 }
 function renderMLCoding(){
  const notes=[
@@ -186,15 +243,11 @@ function renderPyTorch() {
 }
 
 function renderCoding() {
-  return `<h2>Coding</h2><p>Algorithm practice and progressive implementation exercises. ML algorithms and attention remain in ML Coding.</p>${renderLeetCode()}
-  <h2>CodeSignal Industry Coding Assessment</h2><p>Progressive stateful coding practice from collected practice notes. The originals mostly contain implementations and tests rather than complete prompts. The prompts below are reconstructed practice contracts, not official assessment wording. Return values and edge cases are explicit here; the older drafts may differ.</p>
-  <p>Attempt one core in 25–35 minutes, then add one extension. Extension bullets are discussion outlines: agree on their full contract before implementation. References are unreviewed drafts with top-level examples, not guaranteed solutions to the reconstructed prompts.</p>
-  ${COURSE.industryTasks.map(t=>`<section><h3>${esc(t.title)}</h3><p>${esc(t.prompt)}</p><p><strong>Example:</strong> ${esc(t.example)}</p><details class="clean-acc"><summary>Progressive extensions</summary><div class="acc-body"><ol>${t.extensions.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div></details><details class="clean-acc"><summary>Collected implementation and tests · spoilers</summary><div class="acc-body"><p><a href="${esc(t.path)}">${esc(t.path)}</a></p><pre><code>${highlightPython(t.code)}</code></pre></div></details></section>`).join('')}
-  <details class="clean-acc"><summary>Other coding prompts found in the mixed notes</summary><div class="acc-body"><p>These are separate live-coding themes, not the progressive assessment above. Short practice versions reconstructed from the notes:</p><ul><li><strong>Longest-match tokenizer:</strong> scan left to right, emit the longest vocabulary match, otherwise emit an unknown-token ID and advance one character. For vocabulary app=1, apple=2, appleapp yields [2,1]. Follow-up: trie lookup.</li><li><strong>Web crawler:</strong> given a start URL and a fake getUrls callback, visit each same-host URL once. Test cycles and duplicate links; discuss bounded concurrency afterward.</li><li><strong>File deduplication:</strong> group files with identical contents. Filter by size, then hash in chunks; verify bytes if exact equality is required. Discuss I/O cost and changing files.</li><li><strong>Stack samples to trace:</strong> compare consecutive call stacks, close frames beyond the common prefix, then open new frames. Specify timestamp and final-flush rules before coding.</li></ul></div></details>`;
+  return `<h2>Coding</h2><p>Algorithm practice with the LeetCode checklist. ML algorithms and attention implementations are in ML Coding.</p>${renderLeetCode()}`;
 }
 
 function render() {
-  const requested = (location.hash.slice(1) || 'design').toLowerCase();
+  const requested = (location.hash.slice(1).split('/')[0] || 'design').toLowerCase();
   const tab = ['leetcode','practical'].includes(requested) ? 'coding' : requested;
   const valid = ['design', 'theory', 'mlcoding', 'coding', 'pytorch'];
   const active = valid.includes(tab) ? tab : 'design';
@@ -207,6 +260,10 @@ function render() {
   else if (active === 'coding') $('#app').innerHTML = renderCoding();
   else if (active === 'pytorch' || active === 'mlcoding') $('#app').innerHTML = renderMLCoding();
   else if (active === 'theory') $('#app').innerHTML = renderTheory();
+  const sectionId = active === 'theory' ? location.hash.split('/')[1] : null;
+  const section = sectionId ? document.getElementById(sectionId) : null;
+  if (section) section.scrollIntoView();
+  else window.scrollTo(0, 0);
 }
 
 document.addEventListener('click', (e) => {
@@ -244,7 +301,6 @@ document.addEventListener('change', (e) => {
 
 window.addEventListener('hashchange', () => {
   render();
-  window.scrollTo(0, 0);
 });
 
 render();
