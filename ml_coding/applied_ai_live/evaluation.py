@@ -1,8 +1,6 @@
-"""Fresh mock · retrieval evaluation harness (Precision@k, Recall@k, MRR@k)
+"""Retrieval evaluation harness (Precision@k, Recall@k, MRR@k)
 
-### Goal & real-interview context
-Keep this exercise **unseen** until your final 60-minute timed mock!
-Every Fundamental Equities AI system (search over transcripts, SEC filings, or sell-side notes) lives or dies by offline retrieval evaluation. Subtle bugs in **denominator choice, missing predictions, or duplicate ranked IDs** silently inflate metrics and mislead model decisions.
+Compute macro-averaged retrieval metrics over a query set while handling empty relevance sets, missing predictions, one-pass iterators, and duplicate ranked document IDs.
 
 ### Function signature & data shapes
 ```python

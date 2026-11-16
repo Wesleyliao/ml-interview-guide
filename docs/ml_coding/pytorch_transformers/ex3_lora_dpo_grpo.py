@@ -1,7 +1,6 @@
-"""Lab 3 (45 min): Post-Training Primitives — LoRA, DPO & GRPO in PyTorch.
+"""Lab 3: Post-Training Primitives — LoRA, DPO & GRPO in PyTorch.
 
-Focused, realistic implementations (~15–25 lines per component) commonly tested in
-Applied AI / Post-Training / Research Engineer interviews:
+Exercises:
 1. `LoRALinear`: Frozen base linear + rank-`r` adapter (`lora_B == 0` init + `merge_weights()`).
 2. `dpo_loss`: Direct Preference Optimization loss + detached implicit reward margins.
 3. `grpo_loss`: Group Relative Policy Optimization with group-variance collapse guard + k3 KL.

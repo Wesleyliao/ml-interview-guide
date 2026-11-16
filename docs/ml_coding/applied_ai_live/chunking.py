@@ -1,8 +1,6 @@
-"""Warm-up · overlapping token chunks
+"""Overlapping token chunks
 
-### Goal & real-interview context
-Split an already-tokenized document (e.g., an earnings call transcript) into fixed-size overlapping windows while recording each chunk's starting token offset for downstream citation mapping.
-In a live HackerRank screen, an engineer usually states the core goal in two sentences and expects you to confirm boundary cases (`overlap >= size`, empty input, avoiding redundant trailing chunks). Here is the complete agreed spec in checklist form:
+Split a pre-tokenized document into fixed-size overlapping windows while recording each chunk's starting token offset for downstream citation mapping.
 
 ### Function signature & data shapes
 ```python
@@ -26,12 +24,7 @@ chunk_tokens(["a", "b", "c", "d", "e", "f", "g"], size=4, overlap=2)
 
 chunk_tokens(["a", "b", "c", "d"], size=4, overlap=2)
 # -> [(0, ["a", "b", "c", "d"])]   # 1 chunk only, NOT a second (2, ["c", "d"])
-```
-
-### Self-guided workflow (20 min)
-- **Min 0–3:** Trace `len=4, size=4, overlap=2` by hand to lock in the loop stop condition.
-- **Min 3–13:** Implement `chunk_tokens` below.
-- **Min 13–20:** Run `check_chunking()`, then add 1–2 edge cases of your own."""
+```"""
 
 import asyncio
 import math

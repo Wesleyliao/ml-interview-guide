@@ -1,8 +1,8 @@
-"""Lab 1 (45 min): Classical ML From Scratch & Numerically Stable Losses in PyTorch.
+"""Lab 1: Classical ML & Numerically Stable Losses in PyTorch.
 
-Covers the three most common ML-coding warmups and screen questions:
-1. `stable_log_softmax` & `masked_cross_entropy` (OpenAI / Anthropic loss & stability check)
-2. `kmeans_pytorch` (Vectorized Lloyd's K-Means — one of the most frequent ML coding screens)
+Exercises:
+1. `stable_log_softmax` & `masked_cross_entropy`
+2. `kmeans_pytorch` (Vectorized Lloyd's K-Means)
 3. `GaussianNaiveBayes` (Log-space class posteriors without underflow)
 
 Run `.venv/bin/python ml_coding/pytorch_transformers/ex1_classical_and_losses.py` to test your code.

@@ -1,6 +1,6 @@
-"""Lab 2 (50–60 min): Causal + Padding Grouped-Query Attention, RoPE & KV Cache.
+"""Lab 2: Causal + Padding Grouped-Query Attention, RoPE & KV Cache.
 
-Directly targets the classic OpenAI / Anthropic PyTorch Transformer assessment:
+Exercises:
 - Phase 1: Implement RoPE (`apply_rope`) with explicit token position indices `(B, T)` or `(T,)`.
 - Phase 2: Implement `CausalGQAWithCache` supporting `num_q_heads >= num_kv_heads`, causal masking,
            boolean `key_padding_mask`, AND safe handling when a padded query has zero valid keys

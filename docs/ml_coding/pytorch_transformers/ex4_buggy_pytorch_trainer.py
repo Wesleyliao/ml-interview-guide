@@ -1,7 +1,4 @@
-"""Lab 4 (35–45 min): Debug & Repair a Broken PyTorch Sequence Training Pipeline.
-
-Models the live "debug this broken ML pipeline" round reported at Meta (E6 MLE), OpenAI,
-Anthropic, Figma, and Decagon.
+"""Lab 4: Debug & Repair a Broken PyTorch Sequence Training Pipeline.
 
 `buggy_train_and_eval` below runs WITHOUT throwing an exception, yet contains **5 classic bugs**:
   Bug 1 (Data leakage): Standardizes features using mean/std computed across `train + val` combined.

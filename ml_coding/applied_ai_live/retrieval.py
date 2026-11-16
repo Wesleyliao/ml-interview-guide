@@ -1,8 +1,6 @@
-"""Mock B · access-aware cosine top-k retrieval
+"""Access-aware cosine top-k retrieval
 
-### Goal & real-interview context
-Implement an in-memory vector ranker that scores embedded research chunks against a query embedding while enforcing desk-level read permissions **before** selecting top-`k`.
-In a live AI Engineer interview, building a clean, dependency-free ranking function tests Python fluency, edge-case discipline (zero vectors, negative cosine similarity, deterministic tie-breaking), and permission-boundary ordering (pre-filtering vs. post-filtering).
+Implement an in-memory vector ranker that scores embedded chunks against a query embedding while enforcing read permissions before selecting top-`k`.
 
 ### Function signature & data shapes
 ```python
@@ -40,11 +38,7 @@ docs = [
     {"id": "secret", "readers": {"x"}, "vector": [1.0, 0.0]},   # unreadable -> skipped
 ]
 rank_documents(query, docs, user="u", k=3)  # -> ["a", "b", "c"]
-```
-
-### Self-guided workflow (25–30 min)
-- **Step 1 (15 min):** Write a clean `sort`-based baseline first (`scored.sort(key=lambda item: (-item[0], item[1]))`). Don't prematurely optimize with heaps!
-- **Step 2 (10 min):** Run `check_retrieval()`, then write a test where raw dot-product `[100, 100]` disagrees with cosine `[1, 0]`."""
+```"""
 
 import asyncio
 import math

@@ -34,7 +34,7 @@ let lcFilter = 'all';
 function renderFrameworkCards(kind) {
   const fw = COURSE.frameworks[kind];
   return `<ol class="framework-list">${fw.steps.map(s => `<li><h3>${esc(s.title)}</h3><ul>${s.items.map(item=>`<li>${item}</li>`).join('')}</ul></li>`).join('')}</ol>
-    <p class="theory-notation"><strong>3-minute pacing check-in:</strong> walk through steps 1–6 high-level in ~2–3 minutes, then pause and ask the interviewer where they want to zoom in—just like an executive summary before a deep dive. Dotted terms (<span class="concept-demo">like this</span>) open quick plain-English explanations inline.</p>`;
+    <p class="theory-notation">Click or hover <span class="concept-demo">dotted terms</span> for inline definitions.</p>`;
 }
 
 const CONCEPT_TIPS = {
@@ -186,7 +186,7 @@ const CONCEPT_TIPS = {
 
 function renderDesign() {
   return `<div class="design-reader">
-    <div class="section-head"><h2>ML Design approach</h2><span>Sketch end-to-end in 3 min, check in, then go deep</span></div>
+    <div class="section-head"><h2>ML Design approach</h2></div>
     ${renderFrameworkCards('ml')}
     ${COURSE.designReferences}
     <div id="concept-popover" class="concept-popover" role="dialog" aria-label="Concept explanation" hidden></div>
@@ -315,7 +315,6 @@ function renderTheory() {
   const subgroups = group => [...new Set(COURSE.theory.filter(topic=>topic.group === group).map(topic=>topic.subgroup))];
   return `<div class="theory-reader">
     <h1>ML Theory</h1>
-    <p class="theory-intro">Feynman-style progression: model selection → data &amp; drift → evaluation &amp; experiments → optimization → retrieval &amp; ranking → Transformers → scaling &amp; inference → applied LLM evals. Practice saying the plain-English answer aloud in 25 seconds; expand for first-principles intuition, math, mental-math examples and tradeoff tables.</p>
     <nav class="theory-toc" aria-label="Theory contents">
       <h2>Contents</h2>
       <ol>${groups.map(group=>`<li><a href="#theory/${theoryId(group)}">${esc(group)}</a>
@@ -336,27 +335,20 @@ function renderTheory() {
 }
 function renderMLCoding(){
  const notes = {
- 'linear_regression': '20 minutes. Implement fit/predict with an intercept using a stable least-squares solve (`lstsq`); sample count alone does not guarantee independent columns. Follow-up: gradient descent or ridge (unpenalized intercept).',
- 'logistic_regression': '25–30 minutes. Implement overflow-safe sigmoid, signed-logit binary cross entropy, vectorized gradients `X.T @ (p - y) / N` and a fit/predict loop. Follow-up: L2 on `w` (not `b`) or minibatches.',
- 'kmeans': '25–30 minutes. Alternate nearest-center assignment (squared distances, no `sqrt`) and centroid mean updates. Retain empty centers and compute squared-distance inertia. Follow-up: `||x||^2 + ||c||^2 - 2 x @ c.T` memory trick or k-means++.',
- 'naive_bayes': '25–30 minutes. Categorical counts, Laplace smoothing with a reserved unknown category and log-space scoring (`fit` resets counts). Follow-up: normalized probabilities via log-sum-exp.',
- 'pooling': '20 minutes. Masked mean and max pooling over variable-length token sequences `(B, T, D)`. Fill padded tokens with `-inf` before max so negative embeddings beat padding, and guard all-padding rows.',
- 'cosine_retrieval': '20–25 minutes. L2-normalize query and catalog vectors safely (zero vectors score 0), compute inner products and return deterministic top-k indices/scores. Follow-up: `argpartition` for `O(N + k log k)`.',
- 'ranking_metrics': '15–20 minutes. Implement `roc_auc` via a direct descending ROC curve trapezoid walk (handles score ties cleanly with zero memorized rank algebra) plus `ndcg_at_k` with an `IDCG == 0` guard.',
- 'self_attention_numpy': '20–25 minutes for attention only. Project Q/K/V with explicit `einsum` labels, compute scaled scores, normalize over keys and combine values. `TransformerBlockNumpy` is an optional follow-up.',
- 'tabular_gbdt_baseline': '30–40 min Jupyter / practical classification round. Get an end-to-end pipeline running fast with zero imputers or one-hot encoders: split first, cast string columns to `category`, fit `LGBMClassifier`, print train vs. test accuracy + precision/recall/F1 + ROC-AUC, then iterate.'
+ 'linear_regression': 'Fit/predict with an intercept via a stable least-squares solve (`lstsq`, handling collinear columns cleanly). Extensions: gradient descent or ridge with an unpenalized intercept.',
+ 'logistic_regression': 'Overflow-safe sigmoid, signed-logit binary cross-entropy, vectorized gradients `X.T @ (p - y) / N` and a fit/predict loop. Extensions: L2 penalty on `w` (not `b`) or minibatches.',
+ 'kmeans': 'Alternating nearest-center assignment (squared Euclidean distances, no `sqrt`) and centroid mean updates, retaining empty centers and tracking inertia. Extensions: `||x||^2 + ||c||^2 - 2 x @ c.T` or k-means++.',
+ 'naive_bayes': 'Categorical counts, Laplace smoothing with a reserved unknown-category slot and log-space scoring (`fit` resets counts). Extension: normalized posteriors via log-sum-exp.',
+ 'pooling': 'Masked mean and max pooling over variable-length token sequences `(B, T, D)`. Fills padded positions with `-inf` before max so negative values beat padding, and guards all-padding rows.',
+ 'cosine_retrieval': 'Safe L2 normalization for query and catalog vectors (zero vectors score 0), inner-product scoring and deterministic top-k indices/scores. Extension: `argpartition` for `O(N + k log k)`.',
+ 'ranking_metrics': '`roc_auc` via a descending ROC-curve trapezoid walk (handles score ties directly without rank algebra) and `ndcg_at_k` with an `IDCG == 0` guard.',
+ 'self_attention_numpy': 'Scaled dot-product attention, multi-head Q/K/V projections with explicit `einsum` labels, masked key normalization and pre-norm `TransformerBlockNumpy`.',
+ 'tabular_gbdt_baseline': 'End-to-end binary classification baseline: train/test split first, cast string columns to `category` (native NaN + categorical handling, no imputer or one-hot encoding), fit `LGBMClassifier`, and evaluate train/test accuracy, precision/recall/F1 and ROC-AUC.'
  };
  const appliedAi = COURSE.mlFiles.filter(f => f.path.includes('applied_ai_live') || f.path.includes('ex6_ai_live'));
- return `<h2>ML Coding</h2><p>Focus on readable, working 20–35 minute implementations—nothing fancy or hard to memorize. Clarify shapes and edge cases aloud, write the simplest clean baseline first, verify on a tiny example, then layer on follow-ups.</p>
- <p class="theory-notation">Suggested order: linear regression → logistic regression → K-means → Naive Bayes → pooling → cosine retrieval → ROC-AUC &amp; NDCG@K → attention &amp; MHA → practical GBDT tabular baseline.</p>
+ return `<h2>ML Coding</h2>
  ${COURSE.classics.map(f=>`<section><h3>${esc(f.label)}</h3><p>${theoryText(notes[f.path.split('/').pop().replace('.py','')])}</p><p><a href="${esc(f.path)}" download>Download Python</a> · <code>${esc(f.path)}</code></p><details class="clean-acc"><summary>Reference implementation</summary><div class="acc-body"><pre><code>${highlightPython(f.code)}</code></pre></div></details></section>`).join('')}
- <section><h3>Practice with and without AI</h3><ul>
- <li><strong>1. Lock the contract first:</strong> state tensor/data shapes, complexity target and edge cases (ties, empty inputs, padding, zero norms, train/val split) aloud <em>before</em> writing or generating code.</li>
- <li><strong>2. Delegate bounded pieces (AI-enabled rounds):</strong> use the assistant for boilerplate or unit-test scaffolding while keeping ownership of core algorithm choices.</li>
- <li><strong>3. Audit line-by-line:</strong> check generated code for silent ML traps—masking with <code>0</code> instead of <code>-inf</code>, train-to-val leakage, mutating caller data, or swallowing non-timeout exceptions.</li>
- <li><strong>4. Drive production follow-ups:</strong> discuss streaming/iterator inputs, batching/memory bounds, concurrency/idempotency and monitoring.</li>
- </ul></section>
- <details class="clean-acc"><summary>Applied AI live-coding mocks (plain Python: chunking, async RAG audit, ACL retrieval, bounded agent loop, eval harness)</summary><div class="acc-body"><p>Dependency-free 25–40 minute Python exercises mirroring real Applied AI screens (code review + bug repair, permission pre-filtering, deterministic tool-calling loops and streaming retrieval evaluation). Run locally with <code>python3 -m pytest ml_coding/foundational_labs/ -q</code>.</p>${appliedAi.map(f=>`<details class="clean-acc"><summary><span>${esc(f.label)} · <code>${esc(f.path)}</code></span></summary><div class="acc-body"><p><a href="${esc(f.path)}" download>Download Python</a></p><pre><code>${highlightPython(f.code)}</code></pre></div></details>`).join('')}</div></details>
+ <details class="clean-acc"><summary>Applied AI exercises (plain Python: chunking, async RAG audit, ACL retrieval, bounded agent loop, eval harness)</summary><div class="acc-body"><p>Dependency-free Python exercises covering token chunking, async RAG bug fixes, permission pre-filtering, bounded tool-calling loops and retrieval evaluation. Run locally with <code>python3 -m pytest ml_coding/foundational_labs/ -q</code>.</p>${appliedAi.map(f=>`<details class="clean-acc"><summary><span>${esc(f.label)} · <code>${esc(f.path)}</code></span></summary><div class="acc-body"><p><a href="${esc(f.path)}" download>Download Python</a></p><pre><code>${highlightPython(f.code)}</code></pre></div></details>`).join('')}</div></details>
  <details class="clean-acc"><summary>Optional PyTorch reference and Transformer / post-training labs</summary><div class="acc-body">${renderPyTorch()}</div></details>`;
 }
 
@@ -416,7 +408,7 @@ function renderPyTorch() {
 }
 
 function renderCoding() {
-  return `<h2>Coding</h2><p>Algorithm practice with the LeetCode checklist. ML algorithms and attention implementations are in ML Coding.</p>${renderLeetCode()}`;
+  return `<h2>Coding</h2>${renderLeetCode()}`;
 }
 
 function render() {

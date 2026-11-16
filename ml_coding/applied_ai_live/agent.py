@@ -1,8 +1,6 @@
-"""Mock C · a bounded tool-calling agent loop
+"""Bounded tool-calling agent loop
 
-### Goal & real-interview context
-Implement a synchronous, deterministic tool-calling loop (`run_agent`) around a fake LLM and an allowlisted dictionary of tools (e.g., `get_stock_price`, `fetch_10k_section`).
-Applied AI interviews at OpenAI, Anthropic, and hedge funds love this pattern because it tests state-machine clarity, message-history formatting, strict output validation before executing side effects, and loop-budget enforcement—all in ~30 lines of plain Python.
+Implement a synchronous, deterministic tool-calling loop (`run_agent`) around a model callable and an allowlisted dictionary of tools.
 
 ### Function signature & data shapes
 ```python
@@ -41,12 +39,7 @@ tools = {"lookup_eps": lambda ticker, year: "$4.12"}
    - You may execute at most `max_tool_calls` tools.
    - After executing the `max_tool_calls`-th tool, the model gets **one final turn** (`max_tool_calls + 1` model calls total) to synthesize its `"final"` answer from the tool results.
    - If on that final turn the model *still* requests another (valid!) `"tool"`, **do NOT execute the tool or append to `messages`**—return `{"status": "limit", "text": None}`.
-4. **Exceptions:** Let any exception raised inside `model(...)` or `tools[name](...)` propagate naturally (no retries).
-
-### Self-guided workflow (30 min)
-- **Step 1 (5 min):** Trace `max_tool_calls = 1`: `for used in range(max_tool_calls + 1):` runs for `used = 0` (1st model call -> can run 1st tool) and `used = 1` (2nd model call -> must return `"final"`, else if `"tool"` hit `"limit"`!).
-- **Step 2 (15 min):** Implement `run_agent` cleanly using that `for used in range(max_tool_calls + 1):` loop.
-- **Step 3 (10 min):** Run `check_agent()`, then add tests for unknown tools and malformed responses."""
+4. **Exceptions:** Let any exception raised inside `model(...)` or `tools[name](...)` propagate naturally (no retries)."""
 
 import asyncio
 import math

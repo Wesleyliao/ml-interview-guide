@@ -114,4 +114,7 @@ for (const id of ['coding-agent','scarce-labels']) {
 }
 if (!design.includes('Recommended engineering reading')) throw Error('Missing design expansion');
 if (course.theory.some(t=>!t.detail || !t.example || !t.follow)) throw Error('Every theory card must include detail, example and follow-up');
-console.log('Passed: NumPy/practical core, 5 reference designs and 100% Feynman theory depth.');
+if (/feynman|staff-level|staff judgment|staff mitigation|interviewer|3-minute pacing|sketch end-to-end in 3 min|practice with and without ai|aloud/i.test(design + theory + coding)) {
+  throw Error('Coaching / role-level fluff detected in rendered study hub');
+}
+console.log('Passed: NumPy/practical core, 5 reference designs and 100% theory depth.');

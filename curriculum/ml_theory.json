@@ -70,7 +70,7 @@
   {
     "group": "Model selection & classical ML",
     "q": "Linear versus logistic regression?",
-    "a": "Linear regression predicts continuous numbers by minimizing squared error (`MSE` / `Huber`); logistic regression passes a linear score through a sigmoid \\(\\sigma(w^\\top x+b)\\) and minimizes binary cross-entropy to output probabilities in `(0, 1)`. **In practice:** use linear/Huber regression for continuous targets (ETA, price, demand) and logistic regression as your fast, calibrated 5-minute baseline for binary events (click, fraud, churn).",
+    "a": "Linear regression predicts continuous numbers by minimizing squared error (`MSE` / `Huber`); logistic regression passes a linear score through a sigmoid \\(\\sigma(w^\\top x+b)\\) and minimizes binary cross-entropy to output probabilities in `(0, 1)`. **In practice:** use linear/Huber regression for continuous targets (ETA, price, demand) and logistic regression as your fast, calibrated baseline for binary events (click, fraud, churn).",
     "follow": "Why use cross entropy rather than squared error here? What happens on perfectly separable data? How would you add L2?",
     "subgroup": "Linear models & probability",
     "formula": "\\hat y = x^\\top w + b\np = \\sigma(x^\\top w+b) = \\frac{1}{1+\\exp(-x^\\top w-b)}\n\\mathcal{L}_{\\mathrm{BCE}} = -\\frac{1}{n}\\sum_{i=1}^n \\left[y_i\\log p_i + (1-y_i)\\log(1-p_i)\\right]",
@@ -236,7 +236,7 @@
         "url": "https://cs229.stanford.edu/main_notes.pdf"
       }
     ],
-    "detail": "Common interview trap: assuming the highest-variance PCA component holds the predictive signal! Imagine classifying pancakes stacked flat on top of each other: width has 100× more variance than height, so 1-component PCA throws away height—the *only* axis that separates the two pancakes.",
+    "detail": "A common pitfall is assuming the highest-variance PCA component holds the predictive signal. Imagine classifying pancakes stacked flat on top of each other: width has 100× more variance than height, so 1-component PCA throws away height—the *only* axis that separates the two pancakes.",
     "example": "If x₁ ~ N(0, 100) is pure noise and x₂ = 0.1·y separates classes perfectly, top-1 PCA keeps x₁ (0% accuracy) while LDA keeps x₂ (100% accuracy)."
   },
   {
@@ -252,7 +252,7 @@
     "group": "Model selection & classical ML",
     "subgroup": "Trees, clustering & features",
     "q": "Decision tree versus linear model versus neural network?",
-    "a": "Match the model to data type, scale and constraints. **In practice:** **boosted trees (LightGBM / XGBoost)** are the default winner on structured tabular data (<10M rows, mixed units, missing values, sharp thresholds); **linear / logistic models** win for 5-minute baselines, strict sub-ms SLAs, regulated coefficient explainability, or extrapolating time/price trends beyond training ranges; **neural networks** win on unstructured data (text, images, audio, user sequences), multi-task sharing, or 100M+ row embedding catalogs.",
+    "a": "Match the model to data type, scale and constraints. **In practice:** **boosted trees (LightGBM / XGBoost)** are the default winner on structured tabular data (<10M rows, mixed units, missing values, sharp thresholds); **linear / logistic models** win for fast baselines, strict sub-ms SLAs, regulated coefficient explainability, or extrapolating time/price trends beyond training ranges; **neural networks** win on unstructured data (text, images, audio, user sequences), multi-task sharing, or 100M+ row embedding catalogs.",
     "comparison": {
       "headers": [
         "Model",
@@ -320,7 +320,7 @@
     "subgroup": "Trees, clustering & features",
     "q": "XGBoost versus LightGBM: why use second-order gradients (Hessians)?",
     "a": "Plain gradient boosting only looks at the slope \\(g_i\\) of the loss; XGBoost and LightGBM use a second-order Taylor approximation with both slope \\(g_i\\) and curvature \\(h_i\\) (Hessian)—taking cautious small steps where the loss curves sharply and confident steps where curvature is flat, while building regularized leaf penalties directly into the split score.",
-    "detail": "Feynman picture: imagine walking downhill in fog. Knowing only the slope (`g_i`) tells you which way is down, not whether the cliff flattens out in 1 inch or 10 yards! The second derivative (`h_i`) acts like a per-example certainty weight—for logistic loss, \\(h_i = p_i(1-p_i)\\), which automatically shrinks near 0 when an example is already confidently classified (`p ≈ 0.99`) and peaks at `0.25` for uncertain `p = 0.5` points! Both libraries also bin continuous features into ~256 histogram buckets (`O(#bins)` instead of sorting `O(n log n)`) and learn a default left/right branch for `NaN`s automatically.",
+    "detail": "Imagine walking downhill in fog: knowing only the slope (`g_i`) tells you which way is down, not whether the cliff flattens out in 1 inch or 10 yards! The second derivative (`h_i`) acts like a per-example certainty weight—for logistic loss, \\(h_i = p_i(1-p_i)\\), which automatically shrinks near 0 when an example is already confidently classified (`p ≈ 0.99`) and peaks at `0.25` for uncertain `p = 0.5` points! Both libraries also bin continuous features into ~256 histogram buckets (`O(#bins)` instead of sorting `O(n log n)`) and learn a default left/right branch for `NaN`s automatically.",
     "comparison": {
       "headers": [
         "Choice",
@@ -341,7 +341,7 @@
         [
           "Native `NaN` & `'category'`",
           "Routes missing values to whichever child lowers loss more; partitions category bins by `G / H`.",
-          "Eliminates manual imputation and huge one-hot matrices in 30-min interviews and production."
+          "Eliminates manual imputation and huge one-hot matrices."
         ]
       ]
     },
@@ -361,7 +361,7 @@
     "subgroup": "Model deep dives",
     "q": "Deep dive: logistic regression from objective to launch",
     "a": "For a binary outcome, start with an interpretable probability baseline: define the label window, prepare features, minimize regularized BCE, validate probabilities and pick a decision threshold for the product.",
-    "detail": "Explain the linear log-odds assumption and derive p−y. Fit scaling and categorical encoding on training data; use temporal validation for future outcomes. Inspect slices and nonlinear interactions the model cannot express. Tune regularization, calibrate if needed, and compare with a tree baseline. Monitor missingness, score distribution and label delay after launch.",
+    "detail": "Logistic regression models log-odds linearly \\(\\log\\frac{p}{1-p}=w^\\top x+b\\), yielding the per-example logit gradient \\(p-y\\). Fit scaling and categorical encodings strictly on the training split, validate chronologically when predicting future outcomes, inspect slice-level calibration and missing nonlinear crosses against a GBDT baseline, and monitor feature missingness, score drift and label delay after launch.",
     "example": "For whether a user applies to a job within seven days, only train on impressions old enough to have a mature label. Useful features include skill overlap and recency, all computed at impression time.",
     "follow": "What fails if applications are rare? Can a good AUC still yield poor decisions? How would you explain a coefficient?",
     "sources": [
@@ -375,7 +375,7 @@
     "group": "Model selection & classical ML",
     "subgroup": "Model deep dives",
     "q": "Deep dive: boosted trees for tabular prediction",
-    "a": "Use boosted trees as a strong candidate when heterogeneous tabular features and nonlinear interactions matter. Explain split selection, additive learning, loss choice and capacity controls.",
+    "a": "Boosted trees fit an additive ensemble \\(F_m(x)=F_{m-1}(x)+\\eta f_m(x)\\) where each shallow tree greedily splits features to maximize second-order loss reduction while controlling capacity via learning rate, max leaves/depth, L2 leaf regularization, row/feature subsampling and validation early stopping.",
     "detail": "Begin with a simple baseline and point-in-time feature table. Inspect missing/categorical handling for the chosen implementation. Validate by time or entity as required. Use early stopping on validation data and report quality, inference cost and calibration. Trees do not naturally extrapolate smoothly outside observed feature ranges; learned representations may be better for raw text or images.",
     "example": "A cancellation model can combine lead time, price, prior behavior and policy features. A suspiciously dominant post-booking support feature warrants a leakage investigation before celebrating the lift.",
     "follow": "How do you diagnose overfitting? Why might a linear model extrapolate better? What changes for ranking?",
@@ -663,7 +663,7 @@
         "url": "https://scikit-learn.org/stable/modules/model_evaluation.html"
       }
     ],
-    "detail": "MRR rewards the first relevant result; AP averages precision at relevant ranks, and MAP averages AP across queries. NDCG gives graded relevance more weight near the top and normalizes against the ideal ordering. MMR is a selection rule trading relevance against redundancy, not a relevance metric. State how queries with no positives and ties are treated.",
+    "detail": "MRR rewards the first relevant result; AP averages precision at relevant ranks, and MAP averages AP across queries. NDCG gives graded relevance more weight near the top and normalizes against the ideal ordering. MMR is a selection rule trading relevance against redundancy, not a relevance metric. Queries with zero relevant items (`IDCG = 0`) must either score `0` or be excluded consistently, and tied scores require deterministic or expected-rank tie-breaking.",
     "example": "For binary relevance [1,0,1] with two total relevant items: RR=1, AP=(1+2/3)/2=0.833. Binary DCG@3=1+1/log2(4)=1.5; ideal DCG=1+1/log2(3), giving NDCG≈0.920."
   },
   {
@@ -861,12 +861,12 @@
     "group": "Optimization & neural networks",
     "q": "What is backpropagation?",
     "a": "Backpropagation is just reverse-mode chain rule with dynamic programming: instead of nudging each of 1 billion weights one by one to see how loss changes, one forward pass saves intermediate activations and one backward pass reuses downstream sensitivities from output back to input in ~2× forward cost.",
-    "follow": "Explain why detach breaks a gradient path.",
+    "follow": "Why does detaching a tensor break the backward gradient path, and when is stop-gradient intentional?",
     "subgroup": "Optimization & numerical stability",
     "formula": "w \\leftarrow w - \\eta\\,\\nabla_w\\mathcal{L}",
     "notation": "η is the learning rate. Backprop computes \\(\\nabla_w\\mathcal{L}\\); the optimizer decides how to use it.",
     "nuance": "Accumulate correctly scaled microbatch losses to emulate a larger batch, then update once. Batch-dependent layers and stochastic effects can still make the result differ from a single large-batch pass.",
-    "detail": "Memory trade-off to remember for interviews: inference throws activations away layer by layer, so memory is tiny; training must *keep* forward activations in GPU RAM until the backward pass reaches that layer to multiply local Jacobians! That is why training batch size hits OOM long before inference does, and why activation checkpointing saves memory by re-computing activations during backward.",
+    "detail": "Key memory asymmetry: inference discards activations layer by layer so memory stays small, whereas training must *keep* forward activations in GPU RAM until the backward pass reaches that layer to multiply local Jacobians! That is why training batch size hits OOM long before inference does, and why activation checkpointing saves memory by re-computing activations during backward.",
     "example": "For L = (w·x − y)² with x=3, w=2, y=5: forward saves e = w·x − y = 1; backward computes dL/de = 2e = 2, then dL/dw = (dL/de)·x = 6 in one pass."
   },
   {
@@ -1053,7 +1053,7 @@
     "a": "During training, inverted dropout randomly zeroes fraction \\(p\\) of activations and scales survivors by \\(1/(1-p)\\) so expected activation magnitude stays constant. At test time, `model.eval()` turns dropout off (and freezes BatchNorm stats), while `torch.no_grad()` skips storing backward-pass graphs to save RAM and time.",
     "follow": "What goes wrong if validation runs in train mode?",
     "subgroup": "Architecture & regularization",
-    "detail": "Interviewers love testing why scaling is \\(1/(1-p)\\) at train time rather than \\((1-p)\\) at eval time: doing the scaling during training means inference becomes a pure no-op with zero extra multiply! Also remember `eval()` and `no_grad()` are completely orthogonal flags in PyTorch—forgetting `eval()` leaves validation stochastic and noisy; forgetting `no_grad()` silently balloons validation GPU memory until OOM.",
+    "detail": "Inverted dropout scales surviving activations by \\(1/(1-p)\\) during training rather than multiplying by \\((1-p)\\) at evaluation so inference becomes a pure no-op with zero extra compute. Also remember `eval()` and `no_grad()` are completely orthogonal flags in PyTorch—forgetting `eval()` leaves validation stochastic and noisy; forgetting `no_grad()` silently balloons validation GPU memory until OOM.",
     "example": "With p=0.5 dropout on h=[2, 4], keeping the second unit scales it by 1/(1−0.5)=2 → [0, 8], keeping its expected sum equal to 6."
   },
   {
@@ -1212,7 +1212,7 @@
     "subgroup": "Representations & supervision",
     "q": "Why do industrial rankers add explicit feature crosses (DCNv2) instead of just deeper MLPs?",
     "a": "Piecewise-linear ReLU MLPs are surprisingly clumsy and parameter-hungry at learning simple multiplications like `user_genre_affinity × item_genre` or `query_city == listing_city`. A **Cross Network (DCNv2)** multiplies the current hidden vector elementwise back against the original input \\(x_0\\) at every layer—building exact bounded-degree polynomial feature interactions cheaply alongside a standard deep MLP.",
-    "detail": "Feynman intuition: to approximate `f(a, b) = a · b` with flat ReLU planes, an MLP has to tile curved hyperbola surfaces out of dozens of angled flat sheets—and fails outside the training box! In DCNv2, layer 1 computes `x₀ ⊙ (W₀ x₀ + b₀) + x₀`, immediately creating every degree-2 product `x₀,i · x₀,j`; stacking `L` cross layers creates up to degree `L+1` crosses, and low-rank factoring `W = U Vᵀ` keeps latency tiny enough for sub-50 ms heavy ranking.",
+    "detail": "To approximate `f(a, b) = a · b` with flat ReLU planes, an MLP has to tile curved hyperbola surfaces out of dozens of angled flat sheets—and fails outside the training box! In DCNv2, layer 1 computes `x₀ ⊙ (W₀ x₀ + b₀) + x₀`, immediately creating every degree-2 product `x₀,i · x₀,j`; stacking `L` cross layers creates up to degree `L+1` crosses, and low-rank factoring `W = U Vᵀ` keeps latency tiny enough for sub-50 ms heavy ranking.",
     "formula": "x_{\\ell+1} = x_0 \\odot (W_\\ell x_\\ell + b_\\ell) + x_\\ell",
     "notation": "\\(x_0 \\in \\mathbb{R}^d\\) is concatenated dense + embedded sparse features; \\(\\odot\\) is elementwise product; \\(W_\\ell\\) is often factored as low-rank \\(U_\\ell V_\\ell^\\top\\) to cut FLOPs.",
     "example": "With 2 cross layers (`L=2`), DCNv2 directly forms 1st, 2nd and 3rd-order interactions like `user_os × ad_format × hour_of_day` without hand-engineering 1,000 cross columns.",
@@ -1301,7 +1301,7 @@
     "subgroup": "Contrastive objectives & negatives",
     "q": "Multimodal contrastive learning: CLIP versus SigLIP?",
     "a": "CLIP trains separate image and text encoders to land in one shared L2-normalized vector space using **symmetric InfoNCE** across an \\(N\\times N\\) batch grid (every image picks its caption AND every caption picks its image). **SigLIP** replaces that batch-wide softmax competition with independent **pairwise sigmoid binary cross-entropy** on every `(image, text)` cell—removing cross-GPU `AllGather` bottlenecks and working cleanly at smaller batch sizes.",
-    "detail": "Two interview favorites on CLIP/SigLIP: (1) **Why learnable temperature `τ` needs clamping:** cosine similarities live in `[-1, +1]`; without dividing by `τ ≈ 0.01–0.07`, `exp(1)` vs `exp(0)` can barely reach 73% confidence! CLIP learns `log(1/τ)` directly, clamping max scale to `100` so gradients don't explode early on. (2) **Why SigLIP scales cleaner:** softmax needs the sum over *all* `N` columns on every GPU simultaneously, whereas SigLIP treats diagonal cells as `y=+1` and off-diagonals as `y=−1` with a learned bias `b` (initialized near `-10` since `N²−N` cells are negative!), letting GPUs compute loss in chunks and handle multi-positive matches naturally.",
+    "detail": "Two key design details in CLIP and SigLIP: (1) **Why learnable temperature `τ` needs clamping:** cosine similarities live in `[-1, +1]`; without dividing by `τ ≈ 0.01–0.07`, `exp(1)` vs `exp(0)` can barely reach 73% confidence! CLIP learns `log(1/τ)` directly, clamping max scale to `100` so gradients don't explode early on. (2) **Why SigLIP scales cleaner:** softmax needs the sum over *all* `N` columns on every GPU simultaneously, whereas SigLIP treats diagonal cells as `y=+1` and off-diagonals as `y=−1` with a learned bias `b` (initialized near `-10` since `N²−N` cells are negative!), letting GPUs compute loss in chunks and handle multi-positive matches naturally.",
     "comparison": {
       "headers": [
         "Model / Loss",
@@ -1479,7 +1479,7 @@
     "subgroup": "Model deep dives",
     "q": "Deep dive: train and serve a two-tower retriever",
     "a": "Encode query/user context and items separately into a shared space, train positives to score above negatives, precompute item vectors, and retrieve candidates with a compatible index.",
-    "detail": "Choose labels and temporal splits first. Query-only features belong in the query tower; query-item interactions cannot be precomputed in the item tower. Explain the contrastive score matrix and temperature, false-negative masking, and negative sampling distribution. Evaluate exact retrieval to separate representation quality from ANN approximation, then measure end-to-end ranking and online outcomes. Version both towers and index together.",
+    "detail": "Define positive labels and temporal splits first. Query-only features belong in the query tower, while item features must be independent of the query so item vectors can be precomputed offline (query×item crosses belong in downstream rerankers). Train with temperature-scaled in-batch InfoNCE + log-Q popularity correction, false-negative masking and mined hard negatives; evaluate exact KNN recall separately from ANN approximation loss, and deploy query-tower and item-index versions atomically.",
     "example": "With B query-positive pairs, query_vectors @ item_vectors.T yields B×B scores. Diagonal entries are positives only if the batch construction actually pairs row i with item i.",
     "follow": "Why is a cross-encoder too costly for catalog-wide retrieval? When are off-diagonal items also positives? How would you serve a new item?",
     "sources": [
@@ -1603,7 +1603,7 @@
     "a": "Causal masks prevent attending to future tokens; padding masks exclude padding keys. Apply masks to logits before softmax, typically with negative infinity. Define behavior for fully masked rows to avoid NaNs.",
     "follow": "Why does multiplying logits by zero not mask them?",
     "subgroup": "Attention & block structure",
-    "detail": "Classic live-coding bug: multiplying masked attention scores by `0` instead of setting them to `-∞`! Why? Because `exp(0) = 1`, which gives padded or future tokens positive weight in softmax! Setting disallowed positions to `-∞` before softmax makes `exp(-∞) = 0`. One crucial edge case: if left-padding leaves a query row with *all* keys masked (`[-∞, -∞, ...]`), shifting by max yields `-∞ - (-∞) = NaN`—guard all-masked rows with `0` before softmax and zero out their weights after.",
+    "detail": "Common bug: multiplying masked attention scores by `0` instead of setting them to `-∞`! Why? Because `exp(0) = 1`, which gives padded or future tokens positive weight in softmax! Setting disallowed positions to `-∞` before softmax makes `exp(-∞) = 0`. One crucial edge case: if left-padding leaves a query row with *all* keys masked (`[-∞, -∞, ...]`), shifting by max yields `-∞ - (-∞) = NaN`—guard all-masked rows with `0` before softmax and zero out their weights after.",
     "example": "Scores `[2.0, 99.0]` where position 1 is PAD: multiplying by `[1, 0]` gives `softmax([2.0, 0.0]) = [0.88, 0.12]` (12% leaked from PAD!); setting `-∞` gives `softmax([2.0, -∞]) = [1.0, 0.0]`.",
     "sources": [
       {
@@ -1865,8 +1865,8 @@
     "group": "Tokenizers & Transformers",
     "subgroup": "Model deep dives",
     "q": "Deep dive: how modern 2025–2026 LLMs differ from the 2017 Transformer",
-    "a": "Walk through five clean upgrades over the original 2017 paper: **(1) Decoder-only + Pre-RMSNorm** for stable deep gradients, **(2) RoPE (+ QK-Norm)** for relative positions without length walls, **(3) GQA or MLA** to slash KV-cache memory during decode, **(4) SwiGLU 3-matrix FFNs** for stronger expressiveness per FLOP, and **(5) Sparse Mixture-of-Experts (MoE)** to scale knowledge capacity (`total params`) without scaling per-token latency (`active params`).",
-    "detail": "Explain *why* each change happened rather than reciting buzzwords: Post-LayerNorm required fragile warmup or diverged at depth → **Pre-RMSNorm** leaves an untouched residual highway and skips mean subtraction; **QK-Norm** applies RMSNorm to queries and keys right before attention so massive scale/long-context logits don't spike; **SwiGLU** uses 3 projections (`gate, up, down`), so hidden width shrinks from `4d` to `(8/3)d` to keep total FFN parameter count constant at `8d²`; and **Sparse MoE** replaces one giant FFN with `E` smaller expert FFNs where a lightweight router activates only top-`k` (e.g., 8 of 256) experts per token—giving 200B+ knowledge capacity at ~20B active FLOP cost, provided router load-balancing prevents every token from crowding into 2 experts!",
+    "a": "Modern frontier LLMs make five main architectural upgrades over the 2017 Transformer: **(1) Decoder-only + Pre-RMSNorm** for stable deep gradients, **(2) RoPE (+ QK-Norm)** for relative positions without length walls, **(3) GQA or MLA** to slash KV-cache memory during decode, **(4) SwiGLU 3-matrix FFNs** for stronger expressiveness per FLOP, and **(5) Sparse Mixture-of-Experts (MoE)** to scale knowledge capacity (`total params`) without scaling per-token latency (`active params`).",
+    "detail": "Why each change superseded the 2017 design: Post-LayerNorm required fragile warmup or diverged at depth → **Pre-RMSNorm** leaves an untouched residual highway and skips mean subtraction; **QK-Norm** applies RMSNorm to queries and keys right before attention so massive scale/long-context logits don't spike; **SwiGLU** uses 3 projections (`gate, up, down`), so hidden width shrinks from `4d` to `(8/3)d` to keep total FFN parameter count constant at `8d²`; and **Sparse MoE** replaces one giant FFN with `E` smaller expert FFNs where a lightweight router activates only top-`k` (e.g., 8 of 256) experts per token—giving 200B+ knowledge capacity at ~20B active FLOP cost, provided router load-balancing prevents every token from crowding into 2 experts!",
     "formula": "\\operatorname{SwiGLU}(x) = \\left(\\operatorname{SiLU}(xW_{\\mathrm{gate}}) \\odot xW_{\\mathrm{up}}\\right) W_{\\mathrm{down}}\n\\operatorname{MoE}(x) = \\sum_{e \\in \\operatorname{TopK}(g(x))} g_e(x)\\,\\operatorname{FFN}_e(x)",
     "notation": "\\(\\operatorname{SiLU}(z) = z\\,\\sigma(z)\\); with \\(d_{\\mathrm{ff}} = \\frac{8}{3}d\\), three \\(d \\times d_{\\mathrm{ff}}\\) matrices total \\(3 \\cdot d \\cdot \\frac{8}{3}d = 8d^2\\) parameters (matching a classic 2-matrix \\(4d\\) FFN).",
     "example": "A 64-expert MoE activating top-2 experts per token has ~8× the total FFN RAM requirement of a dense model (all 64 experts must sit in GPU memory!), yet runs roughly the same FLOPs per single token as the dense model.",
@@ -1883,7 +1883,7 @@
     "subgroup": "Memory, roofline & parallelism",
     "q": "Where does GPU memory go in training (the 16-byte rule), and what is the Roofline limit?",
     "a": "In standard mixed-precision AdamW training, static model state alone costs roughly **16 bytes per parameter** (`2B` BF16 weights + `2B` BF16 gradients + `12B` FP32 master weights, momentum \\(m\\) and variance \\(v\\))—before adding activations! And speed is governed by **arithmetic intensity** (FLOPs divided by HBM bytes moved): large-batch matrix multiplies are *compute-bound*, while batch-1 token decoding is *memory-bandwidth-bound*.",
-    "detail": "Two mental-math rules that win systems interviews immediately: (1) **Why FP32 master weights?** In BF16 (only 7 mantissa bits!), a tiny learning-rate update like `w − 1e-4 · grad = 1.0 − 0.0001` rounds straight back to `1.000` (zero learning!) unless accumulated in a 4-byte FP32 master copy. On top of that `16Ψ` static budget, activations grow with `Batch × Seq × Layers × Hidden`; **activation checkpointing** saves only layer boundaries during forward and recomputes inside each layer during backward (~33% extra compute for massive memory savings). (2) **Roofline:** an H100 does ~990 TFLOPS (BF16) on ~3.35 TB/s HBM bandwidth → ridge point `990 / 3.35 ≈ 295 FLOPs/byte`. Any op doing fewer than ~295 math ops per byte fetched from HBM stalls waiting on memory wires!",
+    "detail": "Two hardware bottlenecks govern training and serving: (1) **Why FP32 master weights?** In BF16 (only 7 mantissa bits!), a tiny learning-rate update like `w − 1e-4 · grad = 1.0 − 0.0001` rounds straight back to `1.000` (zero learning!) unless accumulated in a 4-byte FP32 master copy. On top of that `16Ψ` static budget, activations grow with `Batch × Seq × Layers × Hidden`; **activation checkpointing** saves only layer boundaries during forward and recomputes inside each layer during backward (~33% extra compute for massive memory savings). (2) **Roofline:** an H100 does ~990 TFLOPS (BF16) on ~3.35 TB/s HBM bandwidth → ridge point `990 / 3.35 ≈ 295 FLOPs/byte`. Any op doing fewer than ~295 math ops per byte fetched from HBM stalls waiting on memory wires!",
     "formula": "\\text{Static AdamW RAM} \\approx (2_{\\text{param}} + 2_{\\text{grad}} + 4_{\\text{master}} + 4_m + 4_v)\\,\\Psi = 16\\Psi\\text{ bytes}\n\\text{Arithmetic Intensity} = \\frac{\\text{FLOPs}}{\\text{Bytes moved from/to HBM}}",
     "notation": "\\(\\Psi\\) = trainable parameter count. For pure BF16 inference, optimizer/gradient/activation-graph states vanish, leaving \\(2\\Psi\\text{ bytes} + \\text{KV cache}\\).",
     "example": "A 7B model needs ~14 GB in BF16 just to run inference (`2 × 7B`), ~112 GB just for static AdamW state (`16 × 7B`, already exceeding one 80 GB GPU before batch=1 activations!), and `Y = xW` at batch=1 moves `2 bytes` per weight to do `2 FLOPs` (`1 FLOP/byte` ≪ 295 → completely bandwidth-bound!).",
@@ -1953,7 +1953,7 @@
     "subgroup": "Inference optimization & quantization",
     "q": "Quantization (FP8, W8A8, W4A16 AWQ/GPTQ) and speculative decoding: how do they speed up serving?",
     "a": "Because autoregressive decoding stalls waiting to load weights from GPU memory, **weight-only quantization (`W4A16` like AWQ/GPTQ)** packs weights into 4 bits and dequantizes on-chip to BF16—cutting memory traffic ~4× for a near-linear decode speedup! For heavy prefill or high QPS, **`FP8` / `W8A8`** quantizes *both* weights and activations to unlock 2× faster Tensor Cores. **Speculative decoding** uses a tiny draft model to guess `K` tokens cheaply, then verifies all `K` in *one* parallel forward pass of the target model with **zero change** to the output distribution.",
-    "detail": "Two crisp nuances interviewers probe: (1) **Why naive `INT8` (`W8A8`) breaks above ~6B params:** Transformers develop a handful of extreme *activation outlier channels* (20–100× larger than normal channels) that stretch a tensor's quantization scale so 99% of normal values round to zero! **AWQ** protects the ~1% of weight channels multiplied by large activations during `W4A16`, while **SmoothQuant / FP8** shifts scale smoothly or uses floating-point exponents that handle wide dynamic range natively. (2) **Why speculative decoding is mathematically lossless:** the target model computes probabilities for all `K` drafted tokens in parallel (compute-rich, like prefill!); rejection sampling accepts token `t` with probability `min(1, p_target / p_draft)` and—on the first rejection—samples a replacement from the residual `norm(max(0, p_target − p_draft))`, guaranteeing the exact target distribution plus 1 bonus token even if every draft guess was rejected!",
+    "detail": "Two critical numerical details: (1) **Why naive `INT8` (`W8A8`) breaks above ~6B params:** Transformers develop a handful of extreme *activation outlier channels* (20–100× larger than normal channels) that stretch a tensor's quantization scale so 99% of normal values round to zero! **AWQ** protects the ~1% of weight channels multiplied by large activations during `W4A16`, while **SmoothQuant / FP8** shifts scale smoothly or uses floating-point exponents that handle wide dynamic range natively. (2) **Why speculative decoding is mathematically lossless:** the target model computes probabilities for all `K` drafted tokens in parallel (compute-rich, like prefill!); rejection sampling accepts token `t` with probability `min(1, p_target / p_draft)` and—on the first rejection—samples a replacement from the residual `norm(max(0, p_target − p_draft))`, guaranteeing the exact target distribution plus 1 bonus token even if every draft guess was rejected!",
     "comparison": {
       "headers": [
         "Technique",
@@ -2042,7 +2042,7 @@
     "subgroup": "Diagnosis & measurement",
     "q": "Constrained decoding, hallucinations and reward hacking: what can and cannot be guaranteed?",
     "a": "**Constrained decoding** runs a finite-state machine / grammar alongside generation to mask out illegal next tokens (`-∞`), guaranteeing **100% valid JSON or tool schemas**—but it NEVER guarantees the values inside are true! Separate **intrinsic hallucinations** (contradicting the supplied RAG passage) from **extrinsic hallucinations** (inventing unsupported facts beyond the context), and watch RL/DPO/GRPO for **reward hacking** (verbosity inflation, sycophancy or exploiting brittle graders).",
-    "detail": "Feynman distinction: constrained decoding is like a web form dropdown that forces you to type a valid 5-digit ZIP code—it stops parser crashes, not wrong addresses! Even subtlety matters: forcing JSON keys in an unnatural order (putting `\"verdict\": true` *before* `\"reasoning\"`) can actually *hurt* accuracy because causal tokens can't revise an early boolean! Meanwhile, Goodhart's Law hits post-training hard: if human raters or LLM judges slightly prefer longer, confident-sounding bullet lists, DPO/RL policies quickly bloat answer length by 2×; in code/agent RL (GRPO), an un-sandboxed policy may delete a failing test or hardcode expected cases unless tests are hidden/read-only.",
+    "detail": "Constrained decoding works like a web form validator that forces a valid 5-digit ZIP code—it prevents parser crashes, not wrong addresses. Even subtlety matters: forcing JSON keys in an unnatural order (putting `\"verdict\": true` *before* `\"reasoning\"`) can actually *hurt* accuracy because causal tokens can't revise an early boolean! Meanwhile, Goodhart's Law hits post-training hard: if human raters or LLM judges slightly prefer longer, confident-sounding bullet lists, DPO/RL policies quickly bloat answer length by 2×; in code/agent RL (GRPO), an un-sandboxed policy may delete a failing test or hardcode expected cases unless tests are hidden/read-only.",
     "example": "Schema-constrained JSON `{ \"q3_revenue_millions\": 999.9, \"citation\": \"doc_1\" }` parses on try #1 with zero retries, yet `999.9` can still be fabricated—you still need deterministic span/math verification.",
     "follow": "Why should structured schemas place a short `'evidence_quote'` or `'step_by_step_check'` field *before* `'final_decision'` in autoregressive JSON output?",
     "sources": [

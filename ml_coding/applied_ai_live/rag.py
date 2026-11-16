@@ -1,8 +1,6 @@
-"""Mock A · review and repair an async RAG answer path
+"""Async RAG answer path: bug review & repair
 
-### Goal & real-interview context
-In Fundamental Equities, an AI research tool might answer an analyst's question using both public SEC filings and internal desk notes, falling back from an internal self-hosted LLM to an external commercial API if the internal cluster times out.
-This exercise mirrors the **Oct 2026 Point72 GenAI first-round report (`1Point3Acres 1192502`)**: you are given a **short, broken async function** and asked to **spot the bugs, fix them, and write unit tests** using fake async dependencies.
+Answer a user's question over mixed public and internal documents, falling back from a primary internal LLM to an external API only when the primary cluster times out.
 
 ### Function signature & data shapes
 ```python
@@ -37,12 +35,7 @@ await answer_query(question: str, user: str, fetch, primary, fallback) -> dict
    - `result["text"].strip()` must be non-empty.
    - `result["citations"]` must be non-empty.
    - **Every** cited ID must belong to the exact document list passed to whichever model (`primary` or `fallback`) produced `result`. (If `fallback` answered, citing an internal-only doc that `fallback` never saw—or an unreadable doc—must abstain!).
-   - If any check fails, return `{"status": "abstained"}`.
-
-### Self-guided workflow (30–40 min)
-- **Step 1 (5–8 min — Code Review):** Read the 11-line starter below *before* editing. List all 5 bugs in your head or notes (what happens on empty docs? on `ValueError`? what docs go to `fallback`? what if `text` is `"   "` or `citations` has `"secret"`?).
-- **Step 2 (15 min — Patch):** Fix `answer_query` cleanly (it only takes ~18 lines of Python!).
-- **Step 3 (10–15 min — Write Tests):** Run `check_rag()`, then fill in `my_extra_rag_tests()` to test unexpected errors, empty external context, and invalid citations."""
+   - If any check fails, return `{"status": "abstained"}`."""
 
 import asyncio
 import math
@@ -105,7 +98,7 @@ async def check_rag():
 asyncio.run(check_rag())
 
 async def my_extra_rag_tests():
-    # Practice writing 3 high-signal unit tests (interviewers care heavily about this!):
+    # Additional regression tests:
     # TODO 1: Primary raises RuntimeError("bug") -> error propagates, fallback is NOT called.
     # TODO 2: User only has internal docs (external_ok=False) & primary raises TimeoutError -> abstains without calling fallback.
     # TODO 3: Primary returns whitespace-only text {"text": "   ", "citations": ["public"]} -> abstains.
