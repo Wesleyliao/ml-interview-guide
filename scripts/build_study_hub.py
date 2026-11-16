@@ -9,52 +9,31 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 FRAMEWORKS = {'ml': {'theme': '',
-        'flow': [{'name': 'Formulation', 'note': 'goals & SLAs'},
-                 {'name': 'Metrics', 'note': 'online + offline'},
-                 {'name': 'Retrieval', 'note': 'candidates'},
-                 {'name': 'Ranking', 'note': 'light → heavy'},
-                 {'name': 'Policy Layer', 'note': 'diversity / rules'},
-                 {'name': 'Monitoring', 'note': 'drift & retrain'}],
-        'steps': [{'title': 'Problem Formulation',
-                   'items': ['<strong>Goals:</strong> business objective → ML '
-                             'objective',
-                             '<strong>Functional:</strong> what is in scope? '
-                             'multi-modal? live or batch?',
-                             '<strong>Non-functional:</strong> latency, number '
-                             'of users, items, QPS'],
+        'steps': [{'title': 'Clarify the Product Goal & Constraints',
+                   'items': ['<strong>Business → ML objective:</strong> translate what the product wants (e.g., long-term retention, verified answers, prevented fraud) into a concrete prediction target without creating clickbait or gaming loops.',
+                             '<strong>Scope &amp; modality:</strong> clarify what inputs exist (tabular logs, text, images, session events) and whether predictions run live per request or offline in batch.',
+                             '<strong>Scale &amp; latency budget:</strong> pin down rough catalog size, QPS and p95/p99 latency (e.g., 150 ms for a feed vs. 2–5 s streaming for RAG).'],
                    'tags': ['Scope', 'Live vs Batch', 'Latency']},
-                  {'title': 'Metrics',
-                   'items': ['<strong>Online:</strong> CTR / conversion / '
-                             'engagement + guardrails (latency, hide rate)',
-                             '<strong>Offline:</strong> <code>Recall@K</code>, '
-                             '<code>NDCG@K</code>, <code>LogLoss / NE</code>, '
-                             'calibration (<code>ECE</code>)'],
+                  {'title': 'Lock Online & Offline Metrics First',
+                   'items': ['<strong>Online north-star + guardrails:</strong> pair the primary win metric (conversions, completed tasks, retention) with hard guardrails (p99 latency, hide/bounce rate, cost, safety/ACL leaks).',
+                             '<strong>Stage-matched offline metrics:</strong> grade candidate retrieval on coverage (<code>Recall@K</code>), rankers on ordering (<code>NDCG@K</code>, <code>PR-AUC</code>), and probability heads on calibration (<code>LogLoss</code>, <code>ECE</code>).'],
                    'tags': ['Online', 'Offline', 'Guardrails']},
-                  {'title': 'High-Level Components',
-                   'items': ['Major pipeline stages end-to-end',
-                             'Candidate retrieval → Light ranker → Heavy '
-                             'ranker → Re-ranker / Policy'],
+                  {'title': 'Sketch the End-to-End Architecture (V0 → V1)',
+                   'items': ['<strong>Start with a simple baseline:</strong> state a non-ML or lightweight baseline you could ship in week 1, then explain which bottleneck justifies a multi-stage pipeline.',
+                             '<strong>Funnel decomposition:</strong> for large catalogs or corpora, separate fast candidate retrieval → feature hydration / reranking → final business policy &amp; filtering.'],
                    'tags': ['Two-Stage Funnel']},
-                  {'title': 'Data',
-                   'items': ['<strong>Labels &amp; signals:</strong> explicit '
-                             'vs implicit, negatives (in-batch + log-Q, hard)',
-                             '<strong>Features:</strong> scaling, missing '
-                             'values, ID / sequence / multimodal encoding',
-                             '<strong>Splits:</strong> sampling, temporal / '
-                             'user-stratified train-test split (zero leakage)'],
+                  {'title': 'Data, Labels & Leak-Free Splits',
+                   'items': ['<strong>Honest labels &amp; negatives:</strong> separate observed dislikes (hides, bounces) from unexposed items, respect delayed conversion windows, and sample negatives carefully.',
+                             '<strong>Features &amp; point-in-time joins:</strong> combine slow historical profiles with fresh in-session signals, computing every training feature strictly as of request time.',
+                             '<strong>Evaluation split:</strong> split chronologically (or by user/query group) so future facts never leak into training.'],
                    'tags': ['Labels', 'Features', 'Temporal Split']},
-                  {'title': 'Modeling',
-                   'items': ['<strong>Progression:</strong> heuristic / GBDT '
-                             'baseline → neural / sequence / multi-task '
-                             'architecture',
-                             '<strong>Loss &amp; eval:</strong> pointwise BCE '
-                             'vs pairwise/listwise; offline slice checks'],
+                  {'title': 'Modeling Progression & Loss Choice',
+                   'items': ['<strong>Earn complexity:</strong> progress from heuristic / GBDT baseline → two-tower / fine-tuned encoder → sequence or multi-task architecture only where offline + latency math justify it.',
+                             '<strong>Match loss to serving:</strong> use pointwise cross-entropy when downstream formulas need calibrated probabilities; use pairwise/listwise or contrastive losses when relative order is enough.'],
                    'tags': ['Baseline First', 'Loss', 'Calibration']},
-                  {'title': 'Deployment & Scaling',
-                   'items': ['<strong>Serving:</strong> end-to-end prediction '
-                             'service + non-ML policy/filtering layers',
-                             '<strong>Operations:</strong> monitoring, alerts, '
-                             'feature/label drift, retraining cadence'],
+                  {'title': 'Serving, Monitoring & Failure Loops',
+                   'items': ['<strong>Fast path &amp; fallbacks:</strong> precompute static item/doc representations offline, cache safely within permission boundaries, and define graceful fallbacks when a model times out.',
+                             '<strong>Post-launch operations:</strong> shadow → canary → A/B ramp, monitor score/feature drift before delayed labels arrive, and debug train–serve skew before blindly retraining.'],
                    'tags': ['Serving', 'Policy Layer', 'Drift']}]}}
 
 
@@ -198,17 +177,31 @@ LC_GROUPS = [
 
 
 
+CLASSIC_SPECS = [
+    ("Linear Regression", "ml_coding/classics/linear_regression.py"),
+    ("Logistic Regression", "ml_coding/classics/logistic_regression.py"),
+    ("K-Means Clustering", "ml_coding/classics/kmeans.py"),
+    ("Categorical Naive Bayes", "ml_coding/classics/naive_bayes.py"),
+    ("Masked Sequence Pooling", "ml_coding/classics/pooling.py"),
+    ("Exact Top-K Cosine Retrieval", "ml_coding/classics/cosine_retrieval.py"),
+    ("ROC-AUC & NDCG@K From Scratch", "ml_coding/classics/ranking_metrics.py"),
+    ("Scaled Attention & Pre-Norm Block (NumPy)", "ml_coding/classics/self_attention_numpy.py"),
+    ("Practical End-to-End LightGBM Classification Baseline", "ml_coding/classics/tabular_gbdt_baseline.py"),
+]
+
 ML_FILES = [
-    ("PyTorch Lab 1: Losses, K-Means & Naive Bayes", "ml_coding/pytorch_transformers/ex1_classical_and_losses.py"),
-    ("PyTorch Lab 2: RoPE, Causal GQA & KV Cache", "ml_coding/pytorch_transformers/ex2_attention_and_kvcache.py"),
-    ("PyTorch Lab 3: LoRA, DPO & GRPO", "ml_coding/pytorch_transformers/ex3_lora_dpo_grpo.py"),
-    ("PyTorch Lab 4: Buggy Trainer Audit", "ml_coding/pytorch_transformers/ex4_buggy_pytorch_trainer.py"),
+    ("Applied AI: Overlapping Token Chunking", "ml_coding/applied_ai_live/chunking.py"),
     ("Applied AI: Async RAG Review & Tests", "ml_coding/applied_ai_live/rag.py"),
     ("Applied AI: Permissioned Cosine Retrieval", "ml_coding/applied_ai_live/retrieval.py"),
     ("Applied AI: Bounded Tool-Calling Loop", "ml_coding/applied_ai_live/agent.py"),
     ("Applied AI: Macro Retrieval Eval Metrics", "ml_coding/applied_ai_live/evaluation.py"),
-    ("PyTorch Reference Solutions", "ml_coding/pytorch_transformers/solutions_pytorch.py"),
     ("Applied AI Reference Solutions", "ml_coding/foundational_labs/ex6_ai_live/solutions.py"),
+    ("Optional: PyTorch Attention & Transformer Block", "ml_coding/classics/self_attention.py"),
+    ("PyTorch Lab 1: Losses, K-Means & Naive Bayes", "ml_coding/pytorch_transformers/ex1_classical_and_losses.py"),
+    ("PyTorch Lab 2: RoPE, Causal GQA & KV Cache", "ml_coding/pytorch_transformers/ex2_attention_and_kvcache.py"),
+    ("PyTorch Lab 3: LoRA, DPO & GRPO", "ml_coding/pytorch_transformers/ex3_lora_dpo_grpo.py"),
+    ("PyTorch Lab 4: Buggy Trainer Audit", "ml_coding/pytorch_transformers/ex4_buggy_pytorch_trainer.py"),
+    ("PyTorch Reference Solutions", "ml_coding/pytorch_transformers/solutions_pytorch.py"),
 ]
 
 
@@ -225,13 +218,10 @@ def build() -> None:
         "frameworks": {"ml": FRAMEWORKS["ml"]},
         "theory": json.loads((ROOT / "curriculum/ml_theory.json").read_text()),
         "diagrams": {name: (ROOT / f"study-hub/diagrams/{name}.svg").read_text() for name in ["recommender", "rag"]},
-        "classics": load_files([(name.replace('_',' ').title(), f"ml_coding/classics/{name}.py") for name in ["linear_regression","kmeans","naive_bayes","self_attention","self_attention_numpy"]]),
+        "classics": load_files(CLASSIC_SPECS),
         "designReferences": (ROOT / "study-hub/design-references.html").read_text().replace("{{recommender}}", (ROOT / "study-hub/diagrams/recommender.svg").read_text()).replace("{{rag}}", (ROOT / "study-hub/diagrams/rag.svg").read_text()),
         "lcGroups": LC_GROUPS,
-        
-        
         "mlFiles": load_files(ML_FILES),
-        
     }
 
     shell = (ROOT / "study-hub/shell.html").read_text()

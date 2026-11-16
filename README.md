@@ -17,8 +17,8 @@ The published folder contains `index.html`, `.nojekyll`, and the Python files li
 ## Edit and rebuild
 
 - `study-hub/`: HTML templates, styling, JavaScript, reference designs and SVG diagrams.
-- `curriculum/`: theory reading sections.
-- `ml_coding/`: compact examples and optional advanced labs, with tests.
+- `curriculum/`: 106 Feynman-style theory topics with plain-English spoken answers, first-principles explanations, mental-math examples, tradeoff tables, model deep dives and primary sources.
+- `ml_coding/`: nine framework-independent core exercises (20–35 min NumPy/plain-Python implementations + a fast LightGBM `'category'`-cast practical baseline), five plain-Python Applied AI live mocks, and optional PyTorch labs, with tests.
 - `scripts/build_study_hub.py`: shared outline, LeetCode list and site builder.
 - `docs/`: generated publishing output; commit this after rebuilding.
 
@@ -26,12 +26,16 @@ The published folder contains `index.html`, `.nojekyll`, and the Python files li
 python3 scripts/build_study_hub.py
 # Optional frontend validation (requires Deno):
 deno run --allow-read scripts/check_study_hub.mjs
-# Python exercise tests (requires the dependencies in requirements.txt):
+# Core NumPy/plain-Python exercises (requires numpy and pytest):
+python3 -m pytest ml_coding/classics/ -q
+# All exercises, including optional PyTorch labs (requires requirements.txt):
 python3 -m pytest ml_coding/ -q
 ```
 
 Equations use LaTeX rendered by the bundled KaTeX library, with local fonts for offline use. Edit `formula` fields in `curriculum/ml_theory.json` using LaTeX (one equation per line); use `\(...\)` for inline math in prose.
 
 The build itself needs only standard-library Python. Update source files, rebuild, and push the source and `docs/` changes. Pages redeploys automatically on pushes to its configured branch.
+
+The ML Design section includes recommender/ads-marketplace, enterprise RAG, knowledge-work agent, coding-agent and scarce-label bootstrapping walkthroughs with annotated engineering-blog links across industry leaders. Theory separates core preparation from optional specialist reading. The Coding tab retains its 75-problem LeetCode checklist.
 
 Reference implementations are educational. No company affiliation or official question attribution is implied.

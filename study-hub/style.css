@@ -491,3 +491,80 @@ pre code { background: transparent; padding: 0; color: inherit; }
   .theory-formula > div { white-space: normal; }
   .theory-topic table { min-width: 0; }
 }
+
+/* Keep short answers scannable while making deeper study explicit. */
+.theory-depth { margin: 12px 0 24px; border-left: 3px solid #d5dfeb; padding: 0 16px; }
+.theory-depth > summary { cursor: pointer; color: #275c83; font-weight: 600; padding: 8px 0; }
+.theory-depth[open] > summary { margin-bottom: 8px; }
+.theory-example { background: #f3f7fb; padding: 12px 16px; border-radius: 8px; }
+.design-reading { background: #f3f7fb; padding: 12px 16px; border-radius: 8px; margin: 22px 0 0; font-size: 13.5px; }
+.design-reading h3 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--sub); }
+.design-reading p { margin: 0; line-height: 1.65; }
+
+/* Narrative blog-style ML Design essays & inline concept tooltips. */
+.design-reader { max-width: 850px; margin: 0 auto; font-size: 15.5px; line-height: 1.78; }
+.design-primers { background: var(--card); border: 1px solid var(--line); border-radius: 9px; padding: 11px 16px; margin: 22px 0 12px; font-size: 13.5px; line-height: 1.65; color: var(--sub); }
+.design-primers strong { color: var(--ink); }
+.design-index { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 10px 14px; background: #eef2f7; border-radius: 9px; margin: 0 0 36px; font-size: 13px; }
+.design-index-label { font-weight: 600; color: var(--sub); margin-right: 2px; }
+.design-index a { background: var(--card); border: 1px solid var(--line); padding: 4px 10px; border-radius: 999px; font-weight: 550; color: var(--ink); text-decoration: none; transition: border-color 0.12s, color 0.12s; }
+.design-index a:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+
+.design-essay { padding: 36px 0 44px; border-top: 2px solid var(--line-strong); scroll-margin-top: 84px; }
+.essay-header { margin-bottom: 22px; }
+.essay-kicker { display: block; font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.06em; color: var(--teal); margin-bottom: 6px; }
+.design-essay h2 { margin: 0 0 12px; font-size: 25px; letter-spacing: -0.45px; line-height: 1.25; }
+.essay-lede { margin: 0; font-size: 16.5px; line-height: 1.72; color: var(--sub); }
+.design-essay h3 { margin: 30px 0 10px; font-size: 18px; letter-spacing: -0.2px; color: var(--ink); }
+.design-essay p { margin: 0 0 16px; color: #1f2937; }
+.design-essay p a { font-weight: 500; text-decoration: underline; text-decoration-color: #93c5fd; text-underline-offset: 3px; }
+.design-essay p a:hover { text-decoration-color: var(--accent); }
+.design-essay .clean-table-wrap { margin: 22px 0; font-size: 13.5px; line-height: 1.55; }
+.design-essay .framework-list { font-size: 15px; line-height: 1.72; margin: 12px 0 18px; }
+.design-essay .framework-list > li { padding: 9px 0; }
+
+.essay-qa { background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--teal); border-radius: 8px; padding: 14px 18px; margin: 24px 0 18px; font-size: 14.5px; line-height: 1.7; }
+.essay-qa h3 { margin: 0 0 10px; font-size: 15px; color: var(--teal); }
+.essay-qa p { margin: 0 0 10px; }
+.essay-qa p:last-child { margin-bottom: 0; }
+
+.concept-term, .concept-demo {
+  appearance: none;
+  border: 0;
+  border-bottom: 1.5px dotted var(--teal);
+  background: rgba(15, 118, 110, 0.06);
+  color: #0f514c;
+  font: inherit;
+  font-weight: 550;
+  padding: 0 4px;
+  border-radius: 4px 4px 0 0;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.concept-demo { cursor: default; }
+.concept-term:hover, .concept-term:focus-visible, .concept-term.is-open {
+  background: rgba(15, 118, 110, 0.16);
+  color: #093835;
+  outline: none;
+}
+
+.concept-popover {
+  position: fixed;
+  z-index: 50;
+  width: min(380px, calc(100vw - 24px));
+  background: #ffffff;
+  color: var(--ink);
+  border: 1px solid #cbd5e1;
+  border-top: 3px solid var(--teal);
+  border-radius: 10px;
+  padding: 13px 15px 14px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.16), 0 2px 6px rgba(15, 23, 42, 0.08);
+  font-size: 13.5px;
+  line-height: 1.62;
+}
+.concept-popover[hidden] { display: none !important; }
+.concept-popover-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.concept-popover-head strong { font-size: 14px; color: var(--ink); }
+.concept-popover-close { border: 0; background: transparent; color: var(--muted); font-size: 18px; line-height: 1; padding: 0 4px; cursor: pointer; border-radius: 4px; }
+.concept-popover-close:hover { background: #f1f5f9; color: var(--ink); }
+.concept-popover p { margin: 0; color: #334155; }

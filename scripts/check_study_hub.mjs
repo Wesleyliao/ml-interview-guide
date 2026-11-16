@@ -20,7 +20,7 @@ if (!theory.includes('Bias versus variance') || !coding.includes('LinearRegresso
 if (highlight.includes('<script>') || !highlight.includes('syntax-comment')) throw Error('Highlight escaping failed');
 console.log('Passed: design, theory, coding render and safe offline highlighting.');
 
-if (design.includes("data-fw=") || design.includes("Practice Prompts") || design.includes("Key Levers &amp; Tradeoffs")) throw Error("Obsolete design sections remain");
+if (design.includes("data-fw=") || design.includes("Practice Prompts") || design.includes("Key Levers &amp; Tradeoffs") || design.includes("flow-strip")) throw Error("Obsolete design sections remain");
 for (const id of ["recommender", "rag-design", "knowledge-agent"]) if (!design.includes(`id="${id}"`)) throw Error(`Missing reference ${id}`);
 const codingPage = new Function('COURSE','esc','katex',`let solved=new Set([1]); let lcFilter='all'; ${functions}; return renderCoding();`)(course,escape,katex);
 if (/CodeSignal|Industry Coding Assessment|Collected implementation|mixed notes/.test(codingPage)) throw Error('Removed assessment content remains');
@@ -46,7 +46,8 @@ console.log('Passed: published Python links and privacy checks.');
 
 // Theory must work as a readable chapter, including direct section links.
 if (!shell.includes('data-tab="design">ML Design</a>')) throw Error('ML Design label missing');
-if (/<details\b|<summary\b|<select\b/.test(theory)) throw Error('Theory content is hidden behind controls');
+if ((theory.match(/class="theory-depth"/g)||[]).length !== course.theory.length) throw Error('Missing theory depth panels');
+if (!theory.includes('Example:</strong>') || !theory.includes('Model deep dives')) throw Error('Missing examples or deep dives');
 if ((theory.match(/class="theory-topic"/g)||[]).length !== course.theory.length) throw Error('Some theory topics were not rendered');
 if (/\\u[0-9a-f]{4}/i.test(JSON.stringify(course.theory))) throw Error('Literal Unicode escape in theory');
 const ids = [...theory.matchAll(/ id="([^"]+)"/g)].map(m=>m[1]);
@@ -59,7 +60,19 @@ for (const topic of course.theory) {
   if (topic.comparison?.rows.some(row=>row.length!==topic.comparison.headers.length)) throw Error('Malformed comparison table');
   for (const ref of topic.sources || []) if (!ref.url.startsWith('https://')) throw Error('Invalid source URL');
 }
-const renderHelpers = new Function('COURSE','esc','katex',`${functions}; return {renderTheoryTopic,theoryMath,theoryText};`)(course,escape,katex);
+const renderHelpers = new Function('COURSE','esc','katex',`${functions}; return {renderTheoryTopic,theoryMath,theoryText,CONCEPT_TIPS};`)(course,escape,katex);
+const tipIds = [...design.matchAll(/data-tip="([^"]+)"/g)].map(m=>m[1]);
+if (tipIds.length < 25) throw Error('Expected inline concept tooltips in ML Design');
+for (const key of tipIds) {
+  const tip = renderHelpers.CONCEPT_TIPS?.[key];
+  if (!tip?.title || !tip?.body) throw Error('Missing CONCEPT_TIPS definition for: '+key);
+  const renderedTip = renderHelpers.theoryText(tip.body);
+  if (renderedTip.includes('`') || renderedTip.includes('**')) throw Error('Unformatted markdown in tooltip: '+key);
+}
+for (const key of Object.keys(renderHelpers.CONCEPT_TIPS || {})) {
+  if (!tipIds.includes(key)) throw Error('Unused CONCEPT_TIPS entry: '+key);
+}
+if (design.includes('`') || design.includes('**')) throw Error('Unrendered markdown syntax in ML Design HTML');
 const unsafe = renderHelpers.renderTheoryTopic({q:'<script>',a:'<img src=x onerror=alert(1)>'});
 if (/<script>|<img/.test(unsafe) || !unsafe.includes('&lt;script&gt;')) throw Error('Theory escaping failed');
 if (!renderHelpers.theoryMath(String.raw`\frac{x^2}{\sqrt{d_k}}`).includes('<mfrac>')) throw Error('Typeset fraction missing');
@@ -90,3 +103,15 @@ locationStub.hash='#design';
 runRouter(course,documentStub,windowStub,locationStub,{getItem:()=>null},katex);
 if (!appNode.innerHTML.includes('ML Design approach') || scrollTarget!=='top') throw Error('Design route regressed');
 console.log(`Passed: ${course.theory.length} visible theory topics, contents links, direct routes, comparisons and safe math formatting.`);
+
+if (course.classics.some(f=>/import torch/.test(f.code))) throw Error('Core coding must be framework-independent');
+for (const name of ['pooling','logistic_regression','cosine_retrieval','ranking_metrics','tabular_gbdt_baseline']) {
+ if (!course.classics.some(f=>f.path.endsWith('/'+name+'.py'))) throw Error('Missing core exercise: '+name);
+}
+if (!course.mlFiles.some(f=>f.path.endsWith('/chunking.py'))) throw Error('Missing chunking.py in mlFiles');
+for (const id of ['coding-agent','scarce-labels']) {
+ if (!design.includes(`id="${id}"`)) throw Error('Missing design section: '+id);
+}
+if (!design.includes('Recommended engineering reading')) throw Error('Missing design expansion');
+if (course.theory.some(t=>!t.detail || !t.example || !t.follow)) throw Error('Every theory card must include detail, example and follow-up');
+console.log('Passed: NumPy/practical core, 5 reference designs and 100% Feynman theory depth.');
