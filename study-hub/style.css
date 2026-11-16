@@ -517,8 +517,10 @@ pre code { background: transparent; padding: 0; color: inherit; }
 .essay-lede { margin: 0; font-size: 16.5px; line-height: 1.72; color: var(--sub); }
 .design-essay h3 { margin: 30px 0 10px; font-size: 18px; letter-spacing: -0.2px; color: var(--ink); }
 .design-essay p { margin: 0 0 16px; color: #1f2937; }
-.design-essay p a { font-weight: 500; text-decoration: underline; text-decoration-color: #93c5fd; text-underline-offset: 3px; }
-.design-essay p a:hover { text-decoration-color: var(--accent); }
+.design-essay ul { margin: 0 0 18px; padding-left: 22px; color: #1f2937; }
+.design-essay ul > li { margin: 9px 0; line-height: 1.74; }
+.design-essay a { font-weight: 500; text-decoration: underline; text-decoration-color: #93c5fd; text-underline-offset: 3px; }
+.design-essay a:hover { text-decoration-color: var(--accent); }
 .design-essay .clean-table-wrap { margin: 22px 0; font-size: 13.5px; line-height: 1.55; }
 .design-essay .framework-list { font-size: 15px; line-height: 1.72; margin: 12px 0 18px; }
 .design-essay .framework-list > li { padding: 9px 0; }

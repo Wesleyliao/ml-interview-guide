@@ -46,6 +46,10 @@ const CONCEPT_TIPS = {
     title: 'ID Embeddings vs. Content Embeddings',
     body: 'An **ID embedding** is a giant lookup table where `item_8492` gets its own trainable row of numbers learned purely from who clicked it—great for memorizing viral quirks, completely blind (`all zeros`) on a brand-new item with 0 clicks! **Content embeddings** pass the item’s text, image or metadata through an encoder so new items work on minute one, though they miss fine item-specific popularity signals. Production towers usually combine both.'
   },
+  'id-dropout': {
+    title: 'ID Dropout & Frequency Thresholds',
+    body: 'When you combine `ID_vec + Content_vec`, popular items dominate training logs—so the network lazily memorizes `ID_vec` and leaves the content weights under-trained! **ID dropout** randomly masks `item_id → <UNK>` on 15–30% of training rows (even for viral hits), forcing the model to predict accurately from text/image/metadata alone so cold-start items actually work at serving time.'
+  },
   'hash-collisions': {
     title: 'Hash-Trick Collisions & Collisionless Tables',
     body: 'With 500M changing user/item IDs, classic systems map `row = hash(id) % 10_000_000` to cap RAM. That forces ~50 unrelated items to share the exact same embedding row—so a viral video corrupts a niche tutorial’s vector! Collisionless tables (like ByteDance’s *Monolith* cuckoo hashmaps) give active IDs unique slots, ignore 1-time noise IDs (`count < threshold`), and evict stale IDs unseen for 30 days.'
@@ -61,6 +65,14 @@ const CONCEPT_TIPS = {
   'pit-joins': {
     title: 'Point-in-Time (Time-Travel) Feature Joins',
     body: 'If a user saw an item on Tuesday at 10:00 AM, every feature attached to that training row (`clicks_last_7d`, `account_age`, `item_ctr`) must reflect values known at **Tuesday 10:00 AM**—never Friday’s latest database table! Joining against an unversioned `latest_features` table leaks future clicks into the input and inflates offline AUC dramatically.'
+  },
+  'chronon-skew': {
+    title: 'Write-Once Feature Stores (Chronon / Tecton)',
+    body: 'Maintaining SQL/Spark code for training AND separate Go/Java Redis code for serving guarantees subtle null/timezone/window bugs (**online–offline skew**). Declarative platforms let you write a feature once in Python: the engine compiles it into Spark point-in-time historical backfills AND Flink streaming jobs writing to Redis, while auditing live logged values against backfills automatically.'
+  },
+  'tiled-windows': {
+    title: 'Tiled Windows vs. Raw Sliding Windows',
+    body: 'Tracking a 30-day exact sliding window in streaming RAM (`Flink + RocksDB`) for 200M users is painfully expensive. Instead, compute a cheap nightly Spark batch count for **days 1–29**, and only maintain **today’s live counter** (or 5-minute non-overlapping tiles) in Flink/Redis—summing `batch_29d + live_today` at read time for 99% of the freshness at ~10% of the streaming cost!'
   },
   'dcnv2': {
     title: 'DCNv2 (Deep & Cross Network v2)',
@@ -94,6 +106,10 @@ const CONCEPT_TIPS = {
     title: 'Tombstones & ACL Revocation Lag',
     body: 'Re-chunking and re-embedding a big document can take seconds or minutes in an async queue. If an executive revokes public access on a confidential doc, a **tombstone / authoritative ACL table** immediately blocks that `doc_id` at query time in milliseconds—even before the background vector index finishes deleting the old chunks.'
   },
+  'late-chunking': {
+    title: 'Late Chunking vs. Pre-Chunking',
+    body: 'Standard RAG chops a document into isolated 300-token pieces *before* embedding, so `"It grew 3%"` forgets what `"It"` refers to. **Late chunking** runs the whole 8,000-token document through a long-context bi-encoder *first* (so every token’s hidden state absorbs earlier headings and nouns), and only mean-pools each chunk’s token slice at the final layer!'
+  },
   'bm25-vs-dense': {
     title: 'BM25 Lexical Search vs. Dense Vector Search',
     body: '**BM25** is smart keyword search: it matches exact tokens weighted by rarity (IDF) while saturating repeated words and normalizing for document length—unbeatable on exact IDs (`SKU-9921`, `form 10-K`, `NullPointerException`). **Dense search** embeds meaning into continuous vectors—unbeatable on paraphrases (`"car won’t turn over"` ↔ `"dead starter battery"`). Hybrid RAG runs both.'
@@ -113,6 +129,18 @@ const CONCEPT_TIPS = {
   'idempotency-keys': {
     title: 'Idempotency Keys on Write Tools',
     body: 'Suppose an agent calls `send_wire_transfer()` and the network times out after 10 seconds—did the bank execute it before the timeout or not? Passing a deterministic `idempotency_key = "task_88_step_3"` lets the server recognize a retry and return the original receipt instead of sending the money twice!'
+  },
+  'codeact-tools': {
+    title: 'CodeAct / Programmatic Tool Calling',
+    body: 'With standard JSON tool calls, pulling 20 tables and filtering rows takes 20 serial LLM turns and dumps megabytes of raw JSON into the prompt. With **CodeAct**, the LLM writes one 12-line Python/JS snippet calling typed tool functions inside a secure sandbox—loops and joins happen in container RAM, returning only the tiny final result to the context window.'
+  },
+  'cli-vs-mcp': {
+    title: 'CLI + Bash vs. MCP / JSON Schemas',
+    body: 'Exposing 60 MCP tools stuffs thousands of lines of JSON schema into every prompt and forces the LLM to pass outputs tool-to-tool across turns. Exposing `bash` + CLIs (`gh`, `jq`, `duckdb`, internal CLIs) costs near-zero upfront tokens (the agent runs `mycli --help` only when needed), composes via Unix pipes (`mycli dump > /tmp/a.json && jq ...`), and uses `stderr` exit codes models already know deeply.'
+  },
+  'brain-hands-split': {
+    title: 'Brain / Hands / Session Decoupling',
+    body: 'Instead of running the agent loop, credentials, and bash shell inside one container, separate **Brain** (stateless orchestrator calling the LLM), **Session** (append-only durable state log), and **Hands** (replaceable unprivileged sandbox VM). If the VM crashes, Brain spins up a fresh VM; if prompt injection runs `env` inside the VM, zero API keys exist there because authenticated RPCs go through an external proxy!'
   },
   'compaction-handles': {
     title: 'Scoped Handles & Context Compaction',
@@ -149,6 +177,10 @@ const CONCEPT_TIPS = {
   'active-coreset': {
     title: 'Uncertainty + Core-Set Diversity Active Learning',
     body: 'Asking humans to label *only* the points closest to `p = 0.5` often hands them 200 near-duplicate noisy gibberish rows! **Core-set / cluster diversity** first filters to uncertain candidates, clusters their embeddings, and picks 1 representative per cluster—paired with a 5–10% uniform random sample so novel failure modes where the model is `99%` confidently wrong still get caught.'
+  },
+  'selective-labels': {
+    title: 'Selective-Label (Censorship) Bias',
+    body: 'Once a fraud or trust-and-safety model automatically **blocks** transactions with `score > 0.85`, those transactions never complete—so you never observe whether they were real fraud or false declines! Retraining only on approved traffic blinds v2 to blocked patterns. Production systems let a tiny, dollar-capped **0.5–1% randomized control group** through (weighted by inverse propensity) to measure true precision and keep training unbiased.'
   }
 };
 
